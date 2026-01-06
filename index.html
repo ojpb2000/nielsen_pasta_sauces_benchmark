@@ -1,0 +1,3591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nielsen Ad Intel Dashboard - RAOS & CAMPBELLS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px 8px 0 0;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .sub-tabs {
+            display: flex;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sub-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .sub-tab:hover {
+            background: #e9ecef;
+        }
+
+        .sub-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .year-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .year-filter-btn {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .year-filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .year-filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .insight-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .insight-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .insight-card p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 40px;
+        }
+
+        .chart-container.large {
+            height: 500px;
+        }
+
+        .chart-container.small {
+            height: 300px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            margin-top: 40px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 30px;
+            transition: background-color 0.2s;
+        }
+
+        .sortable-header:hover {
+            background-color: #f0f0f0;
+        }
+
+        .sortable-header.active-sort {
+            background-color: #e8f0fe;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .sort-indicator {
+            position: absolute;
+            right: 8px;
+            font-size: 10px;
+            color: #667eea;
+        }
+
+        .sortable-header.active-sort .sort-indicator {
+            display: inline;
+        }
+
+        .media-type-cell {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .media-type-cell:hover {
+            background-color: #f0f0f0;
+        }
+
+        .expand-icon {
+            position: absolute;
+            left: 8px;
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .collapsible-row {
+            transition: opacity 0.2s, max-height 0.2s;
+        }
+
+        .collapsible-row.collapsed {
+            display: none;
+        }
+
+        .program-cell.collapsed {
+            display: none;
+        }
+
+        tr.collapsed {
+            display: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Nielsen Ad Intel Dashboard</h1>
+        <p>RAOS & CAMPBELLS Advertising Investment Analysis (January 2024 - December 2025)</p>
+    </div>
+
+    <div class="container">
+        <div class="filters" style="display: none;">
+            <div class="filter-group">
+                <label>Brand</label>
+                <select id="brandFilter">
+                    <option value="ALL">All Brands</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('brand-analysis', this)">Brand Analysis</button>
+            <button class="tab" onclick="showTab('media-category', this)">Media Category</button>
+            <button class="tab" onclick="showTab('media-type', this)">Media Type</button>
+            <button class="tab" onclick="showTab('temporal', this)">Temporal Analysis</button>
+        </div>
+
+        <!-- Brand Analysis Tab -->
+        <div id="brand-analysis" class="tab-content active">
+            <div class="sub-tabs" id="brand-analysis-subtabs">
+                <!-- Sub-tabs will be generated dynamically -->
+            </div>
+            <div id="brand-analysis-content">
+                <!-- Brand content will be generated dynamically -->
+            </div>
+        </div>
+
+        <!-- Media Category Tab -->
+        <div id="media-category" class="tab-content">
+            <div class="sub-tabs" id="media-category-subtabs">
+                <!-- Sub-tabs will be generated dynamically -->
+            </div>
+            <div class="year-filters" id="media-category-year-filters" style="display: none; padding: 15px 20px; background: white; border-bottom: 1px solid #e9ecef;">
+                <span style="margin-right: 15px; font-weight: 600; color: #666;">Filter by Year:</span>
+                <button class="year-filter-btn active" data-year="all" onclick="applyYearFilter('media-category', 'all', this)">All Years</button>
+                <button class="year-filter-btn" data-year="2024" onclick="applyYearFilter('media-category', 2024, this)">2024</button>
+                <button class="year-filter-btn" data-year="2025" onclick="applyYearFilter('media-category', 2025, this)">2025</button>
+            </div>
+            <div id="media-category-content">
+                <!-- Content will be generated dynamically -->
+            </div>
+        </div>
+
+        <!-- Media Type Tab -->
+        <div id="media-type" class="tab-content">
+            <div class="sub-tabs" id="media-type-subtabs">
+                <!-- Sub-tabs will be generated dynamically -->
+            </div>
+            <div class="year-filters" id="media-type-year-filters" style="display: none; padding: 15px 20px; background: white; border-bottom: 1px solid #e9ecef;">
+                <span style="margin-right: 15px; font-weight: 600; color: #666;">Filter by Year:</span>
+                <button class="year-filter-btn active" data-year="all" onclick="applyYearFilter('media-type', 'all', this)">All Years</button>
+                <button class="year-filter-btn" data-year="2024" onclick="applyYearFilter('media-type', 2024, this)">2024</button>
+                <button class="year-filter-btn" data-year="2025" onclick="applyYearFilter('media-type', 2025, this)">2025</button>
+            </div>
+            <div id="media-type-content">
+                <!-- Content will be generated dynamically -->
+            </div>
+        </div>
+
+        <!-- Temporal Analysis Tab -->
+        <div id="temporal" class="tab-content">
+            <div class="sub-tabs" id="temporal-subtabs">
+                <!-- Sub-tabs will be generated dynamically -->
+            </div>
+            <div id="temporal-content">
+                <!-- Content will be generated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Created by Data Intelligence - TBWA NY
+    </div>
+
+    <script>
+        let dashboardData = null;
+        let currentFilters = { brand: 'ALL', subsidiary: 'ALL' };
+        let chartInstances = {}; // Track chart instances for cleanup
+
+        // Load data
+        async function loadData() {
+            try {
+                const response = await fetch('dashboard_data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                dashboardData = await response.json();
+                initializeDashboard();
+            } catch (error) {
+                const errorMsg = `
+                    <div class="loading" style="padding: 40px; text-align: center;">
+                        <h2 style="color: #667eea; margin-bottom: 20px;">Error Loading Data</h2>
+                        <p style="color: #666; margin-bottom: 20px;">
+                            The dashboard cannot load data when opened directly from the file system due to browser security restrictions (CORS).
+                        </p>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto; text-align: left;">
+                            <h3 style="color: #333; margin-bottom: 15px;">Solution: Run a Local Server</h3>
+                            <p style="color: #555; margin-bottom: 15px;"><strong>Option 1: Using Python (Recommended)</strong></p>
+                            <pre style="background: #fff; padding: 15px; border-radius: 4px; overflow-x: auto; margin-bottom: 15px;">python server.py</pre>
+                            <p style="color: #555; margin-bottom: 15px;">Then open: <code style="background: #fff; padding: 2px 6px; border-radius: 3px;">http://localhost:8000/index.html</code></p>
+                            
+                            <p style="color: #555; margin-bottom: 15px;"><strong>Option 2: Using Python's built-in server</strong></p>
+                            <pre style="background: #fff; padding: 15px; border-radius: 4px; overflow-x: auto; margin-bottom: 15px;">python -m http.server 8000</pre>
+                            <p style="color: #555; margin-bottom: 15px;">Then open: <code style="background: #fff; padding: 2px 6px; border-radius: 3px;">http://localhost:8000/index.html</code></p>
+                            
+                            <p style="color: #555; margin-bottom: 15px;"><strong>Option 3: Deploy to GitHub Pages</strong></p>
+                            <p style="color: #555;">Upload the files to GitHub and enable GitHub Pages. This will work without a local server.</p>
+                        </div>
+                        <p style="color: #999; margin-top: 20px; font-size: 12px;">Error details: ${error.message}</p>
+                    </div>
+                `;
+                document.body.innerHTML = errorMsg;
+            }
+        }
+
+        function initializeDashboard() {
+            populateFilters();
+            applyFilters();
+            // Generate brand sub-tabs dynamically
+            generateBrandSubTabs();
+            // Initialize the default tab - wait a bit longer to ensure DOM is ready
+            setTimeout(() => {
+                const defaultTab = document.querySelector('.tab.active');
+                if (defaultTab) {
+                    const onclick = defaultTab.getAttribute('onclick');
+                    if (onclick) {
+                        const match = onclick.match(/showTab\('([^']+)'/);
+                        if (match) {
+                            showTab(match[1], defaultTab);
+                        }
+                    }
+                } else {
+                    showTab('brand-analysis');
+                }
+            }, 200);
+        }
+
+        function generateBrandSubTabs() {
+            if (!dashboardData || !dashboardData.summary || !dashboardData.summary.unique_brands) {
+                console.error('Dashboard data not loaded or brands not found');
+                return;
+            }
+
+            const brands = dashboardData.summary.unique_brands;
+            console.log('Generating sub-tabs for brands:', brands);
+            
+            // Generate Brand Analysis sub-tabs
+            generateSubTabsForTab('brand-analysis', brands, (brand, brandId, index) => {
+                return `
+                    <h2 class="section-title">${brand} Brand Analysis</h2>
+                    <div id="${brandId}-insights"></div>
+                    <div id="${brandId}-charts"></div>
+                `;
+            }, (brandId, buttonElement) => { showSubTab(brandId, buttonElement); });
+            
+            // Generate Media Category, Media Type, and Temporal sub-tabs (with "All Brands" option)
+            const tabTypes = ['media-category', 'media-type', 'temporal'];
+            tabTypes.forEach(tabType => {
+                const allBrands = ['All Brands', ...brands];
+                generateSubTabsForTab(tabType, allBrands, (brand, brandId, index) => {
+                    const titleMap = {
+                        'media-category': 'Media Category Analysis',
+                        'media-type': 'Media Type Analysis',
+                        'temporal': 'Temporal Analysis - Year over Year'
+                    };
+                    return `
+                        <h2 class="section-title">${titleMap[tabType]} - ${brand}</h2>
+                        <div id="${tabType}-content-${brandId}"></div>
+                    `;
+                }, (brandId, buttonElement) => { 
+                    showSubTabMedia(tabType, brandId, buttonElement); 
+                });
+            });
+        }
+
+        function generateSubTabsForTab(tabId, items, contentGenerator, clickHandler) {
+            const subTabsContainer = document.getElementById(`${tabId}-subtabs`);
+            const contentContainer = document.getElementById(`${tabId}-content`);
+            
+            if (!subTabsContainer || !contentContainer) return;
+
+            // Generate sub-tab buttons
+            subTabsContainer.innerHTML = '';
+            contentContainer.innerHTML = '';
+
+            items.forEach((item, index) => {
+                const itemId = item.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                
+                // Create sub-tab button
+                const button = document.createElement('button');
+                button.className = 'sub-tab' + (index === 0 ? ' active' : '');
+                button.textContent = item;
+                button.setAttribute('data-brand-id', itemId);
+                button.setAttribute('data-brand-name', item);
+                button.onclick = function(e) { 
+                    e.preventDefault();
+                    clickHandler(itemId, this);
+                };
+                subTabsContainer.appendChild(button);
+
+                // Create sub-tab content
+                const content = document.createElement('div');
+                content.id = `${tabId}-${itemId}`;
+                content.className = 'sub-tab-content';
+                content.style.display = index === 0 ? 'block' : 'none';
+                content.innerHTML = contentGenerator(item, itemId, index);
+                contentContainer.appendChild(content);
+                
+                // If this is the first item, trigger initial render for all tab types
+                if (index === 0) {
+                    // Trigger initial render after a delay to ensure DOM is ready
+                    // Use a longer delay to ensure all DOM elements are fully created
+                    setTimeout(() => {
+                        const contentCheck = document.getElementById(`${tabId}-${itemId}`);
+                        if (button && contentCheck && contentCheck.style.display === 'block') {
+                            clickHandler(itemId, button);
+                        }
+                    }, 350);
+                }
+            });
+        }
+
+        function populateFilters() {
+            // Filters are hidden, no need to populate
+        }
+
+        function getFilteredData() {
+            return dashboardData.raw_data;
+        }
+
+        function applyFilters() {
+            // Filters are hidden, no need to apply
+        }
+
+        function showTab(tabId, tabElement) {
+            try {
+                // Hide all tabs
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Hide all year filters initially
+                document.querySelectorAll('.year-filters').forEach(filter => {
+                    filter.style.display = 'none';
+                });
+
+                // Show selected tab
+                const tabContent = document.getElementById(tabId);
+                if (!tabContent) {
+                    console.error(`Tab content not found: ${tabId}`);
+                    return;
+                }
+                
+                tabContent.classList.add('active');
+                if (tabElement) {
+                    tabElement.classList.add('active');
+                }
+
+                // Render tab content
+                setTimeout(() => {
+                    try {
+                        switch(tabId) {
+                            case 'brand-analysis':
+                                renderBrandAnalysis();
+                                break;
+                            case 'media-category':
+                            case 'media-type':
+                                // Show year filters
+                                const yearFiltersDiv = document.getElementById(`${tabId}-year-filters`);
+                                if (yearFiltersDiv) {
+                                    yearFiltersDiv.style.display = 'flex';
+                                }
+                                // Show default sub-tab (first one) - wait a bit to ensure DOM is ready
+                                setTimeout(() => {
+                                    const tab = document.getElementById(tabId);
+                                    if (tab) {
+                                        const firstSubTab = tab.querySelector('.sub-tab');
+                                        if (firstSubTab) {
+                                            const onclick = firstSubTab.getAttribute('onclick') || '';
+                                            const match = onclick.match(/showSubTabMedia\('([^']+)',\s*'([^']+)'/);
+                                            if (match) {
+                                                showSubTabMedia(match[1], match[2], firstSubTab);
+                                            } else {
+                                                // Fallback: directly call with default values
+                                                const brandId = firstSubTab.getAttribute('data-brand-id') || 'all-brands';
+                                                showSubTabMedia(tabId, brandId, firstSubTab);
+                                            }
+                                        }
+                                    }
+                                }, 150);
+                                break;
+                            case 'temporal':
+                                // Hide year filters for temporal (it has its own year comparison)
+                                const temporalYearFilters = document.getElementById('temporal-year-filters');
+                                if (temporalYearFilters) {
+                                    temporalYearFilters.style.display = 'none';
+                                }
+                                // Show default sub-tab (first one) - wait a bit to ensure DOM is ready
+                                setTimeout(() => {
+                                    const temporalTab = document.getElementById(tabId);
+                                    if (temporalTab) {
+                                        const firstTemporalSubTab = temporalTab.querySelector('.sub-tab');
+                                        if (firstTemporalSubTab) {
+                                            const onclick = firstTemporalSubTab.getAttribute('onclick') || '';
+                                            const match = onclick.match(/showSubTabMedia\('([^']+)',\s*'([^']+)'/);
+                                            if (match) {
+                                                showSubTabMedia(match[1], match[2], firstTemporalSubTab);
+                                            } else {
+                                                // Fallback: directly call with default values
+                                                const brandId = firstTemporalSubTab.getAttribute('data-brand-id') || 'all-brands';
+                                                showSubTabMedia(tabId, brandId, firstTemporalSubTab);
+                                            }
+                                        }
+                                    }
+                                }, 150);
+                                break;
+                        }
+                    } catch (error) {
+                        console.error('Error rendering tab content:', error);
+                    }
+                }, 50);
+            } catch (error) {
+                console.error('Error in showTab:', error);
+            }
+        }
+
+        function showSubTab(brand, tabElement) {
+            // Only hide sub-tab contents within brand-analysis
+            document.querySelectorAll('#brand-analysis-content .sub-tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            document.querySelectorAll('#brand-analysis-subtabs .sub-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // The brand parameter is the brandId (sanitized), need to find the content with full ID
+            const brandContent = document.getElementById(`brand-analysis-${brand}`);
+            if (brandContent) {
+                brandContent.style.display = 'block';
+            } else {
+                console.error(`Brand content not found for: brand-analysis-${brand}`);
+            }
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+            
+            // Render analysis for the selected brand
+            renderBrandAnalysisByBrand(brand);
+        }
+
+        // Store selected year filter for each tab type
+        const yearFilters = {
+            'media-category': 'all',
+            'media-type': 'all',
+            'temporal': 'all'
+        };
+
+        function showSubTabMedia(tabType, brand, tabElement) {
+            try {
+                // Show year filters for media-category and media-type tabs
+                if (tabType === 'media-category' || tabType === 'media-type') {
+                    const yearFiltersDiv = document.getElementById(`${tabType}-year-filters`);
+                    if (yearFiltersDiv) {
+                        yearFiltersDiv.style.display = 'flex';
+                    }
+                }
+                
+                // Hide all sub-tab contents for this tab type
+                const parentTab = document.getElementById(tabType);
+                if (parentTab) {
+                    parentTab.querySelectorAll('.sub-tab-content').forEach(content => {
+                        content.style.display = 'none';
+                    });
+                    parentTab.querySelectorAll('.sub-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                }
+                
+                // Show selected sub-tab content
+                const selectedContent = document.getElementById(`${tabType}-${brand}`);
+                if (selectedContent) {
+                    selectedContent.style.display = 'block';
+                } else {
+                    console.error(`Sub-tab content not found: ${tabType}-${brand}`);
+                    return;
+                }
+                
+                if (tabElement) {
+                    tabElement.classList.add('active');
+                }
+                
+                // Get brand name from button data attribute or text (preserve exact case)
+                let brandName = brand;
+                if (tabElement) {
+                    const dataBrandName = tabElement.getAttribute('data-brand-name');
+                    if (dataBrandName) {
+                        brandName = dataBrandName;
+                    } else if (tabElement.textContent) {
+                        const buttonText = tabElement.textContent.trim();
+                        if (buttonText !== 'All Brands') {
+                            brandName = buttonText; // Use exact case, don't convert to uppercase
+                        } else {
+                            brandName = 'all';
+                        }
+                    }
+                }
+                
+                // Get selected year filter
+                const selectedYear = yearFilters[tabType] || 'all';
+                
+                // Render the appropriate content - use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        try {
+                            switch(tabType) {
+                                case 'media-category':
+                                    renderMediaCategory(brandName, selectedYear);
+                                    break;
+                                case 'media-type':
+                                    renderMediaType(brandName, selectedYear);
+                                    break;
+                                case 'temporal':
+                                    renderTemporal(brandName);
+                                    break;
+                                default:
+                                    console.error(`Unknown tab type: ${tabType}`);
+                            }
+                        } catch (error) {
+                            console.error('Error rendering tab content:', error);
+                        }
+                    }, 100);
+                });
+            } catch (error) {
+                console.error('Error in showSubTabMedia:', error);
+            }
+        }
+
+        function applyTemporalYearFilter(year, buttonElement) {
+            // Update active state of year filter buttons
+            const yearFiltersDiv = document.getElementById('temporal-year-filters');
+            if (yearFiltersDiv) {
+                yearFiltersDiv.querySelectorAll('.year-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                if (buttonElement) {
+                    buttonElement.classList.add('active');
+                }
+            }
+            
+            // Store selected year
+            yearFilters['temporal'] = year;
+            
+            // Find the temporal content and update the chart
+            const temporalTab = document.getElementById('temporal');
+            if (!temporalTab) return;
+            
+            const activeSubTab = temporalTab.querySelector('.sub-tab.active');
+            if (!activeSubTab) return;
+            
+            const brandId = activeSubTab.getAttribute('data-brand-id');
+            
+            // Only update if we're in "All Brands" view
+            if (brandId === 'all-brands') {
+                const byBrandId = `temporal-by-brand-all-brands`;
+                let filtered = getFilteredData();
+                
+                const byBrandYearMonth = filtered.reduce((acc, d) => {
+                    const brandName = d.Brand_Main || 'Unknown';
+                    const year = d.Year || 2024;
+                    const month = d.Month_Name;
+                    if (month) {
+                        const key = `${brandName}-${year}-${month}`;
+                        acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                    }
+                    return acc;
+                }, {});
+                
+                updateTemporalBrandChart(byBrandId, filtered, byBrandYearMonth);
+                generateTemporalInsights(filtered);
+            }
+        }
+
+        function applyYearFilter(tabType, year, buttonElement) {
+            // Update active state of year filter buttons
+            const yearFiltersDiv = document.getElementById(`${tabType}-year-filters`);
+            if (yearFiltersDiv) {
+                yearFiltersDiv.querySelectorAll('.year-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                if (buttonElement) {
+                    buttonElement.classList.add('active');
+                }
+            }
+            
+            // Store selected year
+            yearFilters[tabType] = year;
+            
+            // Get current brand selection
+            const parentTab = document.getElementById(tabType);
+            if (!parentTab) return;
+            
+            const activeSubTab = parentTab.querySelector('.sub-tab.active');
+            if (!activeSubTab) return;
+            
+            const dataBrandName = activeSubTab.getAttribute('data-brand-name');
+            const brandName = dataBrandName || activeSubTab.textContent.trim();
+            
+            // Re-render with new year filter
+            setTimeout(() => {
+                try {
+                    if (tabType === 'media-category') {
+                        renderMediaCategory(brandName === 'All Brands' ? 'all' : brandName, year);
+                    } else if (tabType === 'media-type') {
+                        renderMediaType(brandName === 'All Brands' ? 'all' : brandName, year);
+                    }
+                } catch (error) {
+                    console.error('Error rendering with year filter:', error);
+                }
+            }, 50);
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function safeCreateChart(elementOrId, config) {
+            // Use requestAnimationFrame to ensure DOM is ready
+            requestAnimationFrame(() => {
+                let chartElement;
+                let containerId;
+                
+                // Handle both element and ID
+                if (typeof elementOrId === 'string') {
+                    containerId = elementOrId;
+                    chartElement = document.getElementById(containerId);
+                } else {
+                    chartElement = elementOrId;
+                    containerId = chartElement.id || 'chart-' + Math.random().toString(36).substr(2, 9);
+                }
+                
+                if (!chartElement) {
+                    console.error(`Chart element not found: ${containerId}`);
+                    return null;
+                }
+
+                // Destroy existing chart if present
+                if (chartInstances[containerId]) {
+                    chartInstances[containerId].destroy();
+                    delete chartInstances[containerId];
+                }
+
+                try {
+                    chartInstances[containerId] = new Chart(chartElement, config);
+                    return chartInstances[containerId];
+                } catch (error) {
+                    console.error(`Error creating chart ${containerId}:`, error);
+                    if (chartElement.parentElement) {
+                        chartElement.parentElement.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">Error creating chart</p>';
+                    }
+                    return null;
+                }
+            });
+        }
+
+        function renderBrandAnalysis() {
+            // Find the visible sub-tab and render it
+            const brandContents = document.querySelectorAll('#brand-analysis-content .sub-tab-content');
+            let rendered = false;
+            
+            brandContents.forEach(content => {
+                if (content.style.display !== 'none' && content.style.display !== '') {
+                    const brandId = content.id;
+                    // Use requestAnimationFrame to ensure DOM is ready
+                    requestAnimationFrame(() => {
+                        setTimeout(() => {
+                            renderBrandAnalysisByBrand(brandId);
+                        }, 50);
+                    });
+                    rendered = true;
+                }
+            });
+            
+            // If no sub-tab is visible, render the first one
+            if (!rendered && brandContents.length > 0) {
+                const firstBrand = brandContents[0].id;
+                brandContents[0].style.display = 'block';
+                const firstButton = document.querySelector('#brand-analysis-subtabs .sub-tab');
+                if (firstButton) {
+                    firstButton.classList.add('active');
+                }
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        renderBrandAnalysisByBrand(firstBrand);
+                    }, 50);
+                });
+            }
+        }
+
+        function renderBrandAnalysisByBrand(brandId) {
+            // Get the brand name from the button data attribute or text
+            const brandButton = document.querySelector(`#brand-analysis-subtabs .sub-tab[data-brand-id="${brandId}"]`);
+            
+            if (!brandButton) {
+                console.error(`Brand button not found for brandId: ${brandId}`);
+                return;
+            }
+            
+            // Use the exact brand name from data attribute or button text (preserving case and special characters)
+            const brandName = brandButton.getAttribute('data-brand-name') || brandButton.textContent.trim();
+            
+            console.log(`Rendering analysis for brand: ${brandName} (ID: ${brandId})`);
+            
+            // Use the generic brand analysis function
+            renderGenericBrandAnalysis(brandName, brandId);
+        }
+
+        function renderGenericBrandAnalysis(brandName, brandId) {
+            const filtered = getFilteredData().filter(d => d.Brand_Main === brandName);
+            const insightsDiv = document.getElementById(`${brandId}-insights`);
+            const chartsDiv = document.getElementById(`${brandId}-charts`);
+            
+            if (!insightsDiv || !chartsDiv) return;
+            
+            insightsDiv.innerHTML = '';
+            chartsDiv.innerHTML = '';
+
+            // Calculate comprehensive data
+            const totalSpend = filtered.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+            const byYear = filtered.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const byMonth = filtered.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const sortedMonths = Object.entries(byMonth).sort((a, b) => b[1] - a[1]);
+            const top3Months = sortedMonths.slice(0, 3);
+            
+            const byMediaType = filtered.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                acc[type] = (acc[type] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sortedMediaTypes = Object.entries(byMediaType).sort((a, b) => b[1] - a[1]);
+            
+            // Top TV Programs
+            const tvPrograms = filtered.filter(d => d['Media Category'] === 'Television' && d['Program Name'] && d['Program Name'].trim() !== '');
+            const byProgram = tvPrograms.reduce((acc, d) => {
+                const program = d['Program Name'];
+                const distributor = d.Distributor || 'Unknown';
+                const key = `${program} (${distributor})`;
+                acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topPrograms = Object.entries(byProgram).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            // Top Distributors/Channels
+            const byDistributor = filtered.reduce((acc, d) => {
+                const dist = d.Distributor || 'Unknown';
+                acc[dist] = (acc[dist] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topDistributors = Object.entries(byDistributor).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            // YouTube analysis
+            const youtubeData = filtered.filter(d => d.Is_YouTube);
+            const byYouTubeChannel = youtubeData.reduce((acc, d) => {
+                const channel = d.Distributor || 'Unknown';
+                acc[channel] = (acc[channel] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topYouTubeChannels = Object.entries(byYouTubeChannel).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            
+            // Digital Social analysis
+            const digitalSocialData = filtered.filter(d => d['Media Type'] === 'Digital Social');
+            const digitalSocialTotal = digitalSocialData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+            const digitalSocialByYear = digitalSocialData.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const digitalSocialByMonth = digitalSocialData.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+            const topDigitalSocialMonths = Object.entries(digitalSocialByMonth).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            const digitalSocialByDistributor = digitalSocialData.reduce((acc, d) => {
+                const dist = d.Distributor || 'Unknown';
+                acc[dist] = (acc[dist] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topDigitalSocialChannels = Object.entries(digitalSocialByDistributor).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const digitalSocialYoY = digitalSocialByYear[2025] && digitalSocialByYear[2024] 
+                ? ((digitalSocialByYear[2025] - digitalSocialByYear[2024]) / digitalSocialByYear[2024] * 100).toFixed(1)
+                : null;
+            
+            // Year-over-year comparison
+            const yoyChange = byYear[2025] && byYear[2024] 
+                ? ((byYear[2025] - byYear[2024]) / byYear[2024] * 100).toFixed(1)
+                : null;
+
+            // Color scheme based on brand (default to purple gradient)
+            const brandColors = {
+                'CAMPBELLS': { primary: '#667eea', secondary: '#764ba2' },
+                'RAOS': { primary: '#764ba2', secondary: '#667eea' }
+            };
+            const colors = brandColors[brandName] || { primary: '#667eea', secondary: '#764ba2' };
+
+            // Generate comprehensive text analysis
+            let analysisHTML = `
+                <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); line-height: 1.8; color: #333;">
+                    <h2 style="color: ${colors.primary}; margin-bottom: 25px; font-size: 28px;">${brandName} Advertising Investment Analysis</h2>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: ${colors.primary}; margin-bottom: 15px; font-size: 20px;">Executive Summary</h3>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            ${brandName} has invested a total of <strong style="color: ${colors.primary};">${formatCurrency(totalSpend)}</strong> in advertising across all media channels from January 2024 to December 2025. 
+                            ${yoyChange ? `The brand ${yoyChange > 0 ? 'increased' : 'decreased'} its advertising investment by <strong>${Math.abs(yoyChange)}%</strong> year-over-year, spending ${formatCurrency(byYear[2024])} in 2024 and ${formatCurrency(byYear[2025])} in 2025.` : ''}
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 6px; border-left: 4px solid ${colors.primary};">
+                        <h3 style="color: ${colors.primary}; margin-bottom: 15px; font-size: 20px;">Peak Investment Periods</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            ${brandName} demonstrates a clear seasonal investment pattern with the highest spending concentrated in specific months:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${top3Months.map(([month, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${month}</strong>: ${formatCurrency(amount)} ${idx === 0 ? '(Peak Month)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                        <p style="font-size: 16px; margin-top: 15px; font-style: italic; color: #666;">
+                            These peak months represent critical periods for ${brandName}' advertising strategy, likely aligned with key sales seasons and consumer behavior patterns.
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: ${colors.primary}; margin-bottom: 15px; font-size: 20px;">Media Type Distribution</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            ${brandName} allocates its advertising budget across multiple media types:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${sortedMediaTypes.map(([type, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${type}</strong>: ${formatCurrency(amount)} (${((amount/totalSpend)*100).toFixed(1)}% of total)</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    ${topPrograms.length > 0 ? `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: ${colors.primary}; margin-bottom: 15px; font-size: 20px;">Top Television Programs</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            ${brandName} strategically places advertisements during high-impact television programming:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${topPrograms.map(([program, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${program}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: ${colors.primary}; margin-bottom: 15px; font-size: 20px;">Top Distribution Channels</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            The brand leverages a diverse network of distribution channels and platforms:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${topDistributors.map(([dist, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${dist}</strong>: ${formatCurrency(amount)} ${idx < 3 ? '(Top Channel)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    ${topYouTubeChannels.length > 0 ? `
+                    <div style="margin-bottom: 30px; background: #fff3cd; padding: 20px; border-radius: 6px; border-left: 4px solid #ffc107;">
+                        <h3 style="color: #856404; margin-bottom: 15px; font-size: 20px;">YouTube Channel Strategy</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px; color: #856404;">
+                            ${brandName} has invested ${formatCurrency(youtubeData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0))} in YouTube advertising, focusing on the following channels:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #856404;">
+                            ${topYouTubeChannels.map(([channel, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${channel}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    ${digitalSocialTotal > 0 ? `
+                    <div style="margin-bottom: 30px; background: #e7f3ff; padding: 20px; border-radius: 6px; border-left: 4px solid #2196F3;">
+                        <h3 style="color: #0d47a1; margin-bottom: 15px; font-size: 20px;">Digital Social Media Investment</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px; color: #0d47a1;">
+                            ${brandName} has invested <strong>${formatCurrency(digitalSocialTotal)}</strong> in Digital Social media, representing <strong>${((digitalSocialTotal/totalSpend)*100).toFixed(1)}%</strong> of total advertising investment.
+                            ${digitalSocialYoY ? `Digital Social investment ${digitalSocialYoY > 0 ? 'increased' : 'decreased'} by <strong>${Math.abs(digitalSocialYoY)}%</strong> year-over-year (${formatCurrency(digitalSocialByYear[2024])} in 2024 vs ${formatCurrency(digitalSocialByYear[2025])} in 2025).` : ''}
+                        </p>
+                        ${topDigitalSocialMonths.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px; color: #0d47a1; font-weight: 600;">Peak Digital Social Investment Months:</p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #0d47a1;">
+                            ${topDigitalSocialMonths.map(([month, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${month}</strong>: ${formatCurrency(amount)} ${idx === 0 ? '(Peak Month)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                        ` : ''}
+                        ${topDigitalSocialChannels.length > 0 ? `
+                        <p style="font-size: 16px; margin-top: 15px; margin-bottom: 10px; color: #0d47a1; font-weight: 600;">Top Digital Social Platforms/Channels:</p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #0d47a1;">
+                            ${topDigitalSocialChannels.map(([channel, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${channel}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                        <h3 style="color: ${colors.primary}; margin-bottom: 15px; font-size: 20px;">Strategic Insights</h3>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • ${brandName} maintains a diversified media mix, with ${sortedMediaTypes[0] ? sortedMediaTypes[0][0] : 'multiple'} channels representing the largest share of investment.
+                        </p>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • The brand shows strong seasonal investment patterns, with ${top3Months[0] ? top3Months[0][0] : 'key months'} representing peak advertising periods.
+                        </p>
+                        ${topPrograms.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Television programming remains a core component, with strategic placements in programs like "${topPrograms[0] ? topPrograms[0][0].split(' (')[0] : ''}" reaching significant investment levels.
+                        </p>
+                        ` : ''}
+                        ${topYouTubeChannels.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Digital channels, particularly YouTube, represent a growing component of ${brandName}' media strategy, with targeted channel partnerships.
+                        </p>
+                        ` : ''}
+                        ${digitalSocialTotal > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Digital Social media investment accounts for ${((digitalSocialTotal/totalSpend)*100).toFixed(1)}% of total spending, ${digitalSocialYoY && parseFloat(digitalSocialYoY) > 0 ? 'showing strong growth' : 'demonstrating'} a strategic focus on social media platforms${topDigitalSocialChannels.length > 0 ? `, with ${topDigitalSocialChannels[0][0]} leading platform investments` : ''}.
+                        </p>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            insightsDiv.innerHTML = analysisHTML;
+
+            // Create charts
+            createMonthlySpendingChart(filtered, `${brandId}-monthly`, `${brandName} Monthly Spending`);
+            createMediaTypeChart(filtered, `${brandId}-media-type`, `${brandName} Media Type Distribution`);
+            createYearComparisonChart(filtered, `${brandId}-year`, `${brandName} Year Comparison`);
+            createTopProgramsChart(filtered, `${brandId}-programs`, `${brandName} Top Programs/Distributors`);
+        }
+
+        function renderCampbellsAnalysis() {
+            const filtered = getFilteredData().filter(d => d.Brand_Main === 'CAMPBELLS');
+            const insightsDiv = document.getElementById('campbells-insights');
+            const chartsDiv = document.getElementById('campbells-charts');
+            
+            insightsDiv.innerHTML = '';
+            chartsDiv.innerHTML = '';
+
+            // Calculate comprehensive data
+            const totalSpend = filtered.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+            const byYear = filtered.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const byMonth = filtered.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const sortedMonths = Object.entries(byMonth).sort((a, b) => b[1] - a[1]);
+            const top3Months = sortedMonths.slice(0, 3);
+            
+            const byMediaType = filtered.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                acc[type] = (acc[type] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sortedMediaTypes = Object.entries(byMediaType).sort((a, b) => b[1] - a[1]);
+            
+            // Top TV Programs
+            const tvPrograms = filtered.filter(d => d['Media Category'] === 'Television' && d['Program Name'] && d['Program Name'].trim() !== '');
+            const byProgram = tvPrograms.reduce((acc, d) => {
+                const program = d['Program Name'];
+                const distributor = d.Distributor || 'Unknown';
+                const key = `${program} (${distributor})`;
+                acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topPrograms = Object.entries(byProgram).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            // Top Distributors/Channels
+            const byDistributor = filtered.reduce((acc, d) => {
+                const dist = d.Distributor || 'Unknown';
+                acc[dist] = (acc[dist] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topDistributors = Object.entries(byDistributor).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            // YouTube analysis
+            const youtubeData = filtered.filter(d => d.Is_YouTube);
+            const byYouTubeChannel = youtubeData.reduce((acc, d) => {
+                const channel = d.Distributor || 'Unknown';
+                acc[channel] = (acc[channel] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topYouTubeChannels = Object.entries(byYouTubeChannel).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            
+            // Digital Social analysis
+            const digitalSocialData = filtered.filter(d => d['Media Type'] === 'Digital Social');
+            const digitalSocialTotal = digitalSocialData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+            const digitalSocialByYear = digitalSocialData.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const digitalSocialByMonth = digitalSocialData.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+            const topDigitalSocialMonths = Object.entries(digitalSocialByMonth).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            const digitalSocialByDistributor = digitalSocialData.reduce((acc, d) => {
+                const dist = d.Distributor || 'Unknown';
+                acc[dist] = (acc[dist] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topDigitalSocialChannels = Object.entries(digitalSocialByDistributor).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const digitalSocialYoY = digitalSocialByYear[2025] && digitalSocialByYear[2024] 
+                ? ((digitalSocialByYear[2025] - digitalSocialByYear[2024]) / digitalSocialByYear[2024] * 100).toFixed(1)
+                : null;
+            
+            // Year-over-year comparison
+            const yoyChange = byYear[2025] && byYear[2024] 
+                ? ((byYear[2025] - byYear[2024]) / byYear[2024] * 100).toFixed(1)
+                : null;
+
+            // Generate comprehensive text analysis
+            let analysisHTML = `
+                <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); line-height: 1.8; color: #333;">
+                    <h2 style="color: #667eea; margin-bottom: 25px; font-size: 28px;">CAMPBELLS Advertising Investment Analysis</h2>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 20px;">Executive Summary</h3>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            CAMPBELLS has invested a total of <strong style="color: #667eea;">${formatCurrency(totalSpend)}</strong> in advertising across all media channels from January 2024 to December 2025. 
+                            ${yoyChange ? `The brand ${yoyChange > 0 ? 'increased' : 'decreased'} its advertising investment by <strong>${Math.abs(yoyChange)}%</strong> year-over-year, spending ${formatCurrency(byYear[2024])} in 2024 and ${formatCurrency(byYear[2025])} in 2025.` : ''}
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 6px; border-left: 4px solid #667eea;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 20px;">Peak Investment Periods</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            CAMPBELLS demonstrates a clear seasonal investment pattern with the highest spending concentrated in specific months:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${top3Months.map(([month, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${month}</strong>: ${formatCurrency(amount)} ${idx === 0 ? '(Peak Month)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                        <p style="font-size: 16px; margin-top: 15px; font-style: italic; color: #666;">
+                            These peak months represent critical periods for CAMPBELLS' advertising strategy, likely aligned with key sales seasons and consumer behavior patterns.
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 20px;">Media Type Distribution</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            CAMPBELLS allocates its advertising budget across multiple media types:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${sortedMediaTypes.map(([type, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${type}</strong>: ${formatCurrency(amount)} (${((amount/totalSpend)*100).toFixed(1)}% of total)</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    ${topPrograms.length > 0 ? `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 20px;">Top Television Programs</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            CAMPBELLS strategically places advertisements during high-impact television programming:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${topPrograms.map(([program, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${program}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 20px;">Top Distribution Channels</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            The brand leverages a diverse network of distribution channels and platforms:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${topDistributors.map(([dist, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${dist}</strong>: ${formatCurrency(amount)} ${idx < 3 ? '(Top Channel)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    ${topYouTubeChannels.length > 0 ? `
+                    <div style="margin-bottom: 30px; background: #fff3cd; padding: 20px; border-radius: 6px; border-left: 4px solid #ffc107;">
+                        <h3 style="color: #856404; margin-bottom: 15px; font-size: 20px;">YouTube Channel Strategy</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px; color: #856404;">
+                            CAMPBELLS has invested ${formatCurrency(youtubeData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0))} in YouTube advertising, focusing on the following channels:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #856404;">
+                            ${topYouTubeChannels.map(([channel, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${channel}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    ${digitalSocialTotal > 0 ? `
+                    <div style="margin-bottom: 30px; background: #e7f3ff; padding: 20px; border-radius: 6px; border-left: 4px solid #2196F3;">
+                        <h3 style="color: #0d47a1; margin-bottom: 15px; font-size: 20px;">Digital Social Media Investment</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px; color: #0d47a1;">
+                            CAMPBELLS has invested <strong>${formatCurrency(digitalSocialTotal)}</strong> in Digital Social media, representing <strong>${((digitalSocialTotal/totalSpend)*100).toFixed(1)}%</strong> of total advertising investment.
+                            ${digitalSocialYoY ? `Digital Social investment ${digitalSocialYoY > 0 ? 'increased' : 'decreased'} by <strong>${Math.abs(digitalSocialYoY)}%</strong> year-over-year (${formatCurrency(digitalSocialByYear[2024])} in 2024 vs ${formatCurrency(digitalSocialByYear[2025])} in 2025).` : ''}
+                        </p>
+                        ${topDigitalSocialMonths.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px; color: #0d47a1; font-weight: 600;">Peak Digital Social Investment Months:</p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #0d47a1;">
+                            ${topDigitalSocialMonths.map(([month, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${month}</strong>: ${formatCurrency(amount)} ${idx === 0 ? '(Peak Month)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                        ` : ''}
+                        ${topDigitalSocialChannels.length > 0 ? `
+                        <p style="font-size: 16px; margin-top: 15px; margin-bottom: 10px; color: #0d47a1; font-weight: 600;">Top Digital Social Platforms/Channels:</p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #0d47a1;">
+                            ${topDigitalSocialChannels.map(([channel, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${channel}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 20px;">Strategic Insights</h3>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • CAMPBELLS maintains a diversified media mix, with ${sortedMediaTypes[0] ? sortedMediaTypes[0][0] : 'multiple'} channels representing the largest share of investment.
+                        </p>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • The brand shows strong seasonal investment patterns, with ${top3Months[0] ? top3Months[0][0] : 'key months'} representing peak advertising periods.
+                        </p>
+                        ${topPrograms.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Television programming remains a core component, with strategic placements in programs like "${topPrograms[0] ? topPrograms[0][0].split(' (')[0] : ''}" reaching significant investment levels.
+                        </p>
+                        ` : ''}
+                        ${topYouTubeChannels.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Digital channels, particularly YouTube, represent a growing component of CAMPBELLS' media strategy, with targeted channel partnerships.
+                        </p>
+                        ` : ''}
+                        ${digitalSocialTotal > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Digital Social media investment accounts for ${((digitalSocialTotal/totalSpend)*100).toFixed(1)}% of total spending, ${digitalSocialYoY && parseFloat(digitalSocialYoY) > 0 ? 'showing strong growth' : 'demonstrating'} a strategic focus on social media platforms${topDigitalSocialChannels.length > 0 ? `, with ${topDigitalSocialChannels[0][0]} leading platform investments` : ''}.
+                        </p>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            insightsDiv.innerHTML = analysisHTML;
+
+            // Create charts
+            createMonthlySpendingChart(filtered, 'campbells-monthly', 'CAMPBELLS Monthly Spending');
+            createMediaTypeChart(filtered, 'campbells-media-type', 'CAMPBELLS Media Type Distribution');
+            createYearComparisonChart(filtered, 'campbells-year', 'CAMPBELLS Year Comparison');
+            createTopProgramsChart(filtered, 'campbells-programs', 'CAMPBELLS Top Programs/Distributors');
+        }
+
+        function renderRaosAnalysis() {
+            const filtered = getFilteredData().filter(d => d.Brand_Main === 'RAOS');
+            const insightsDiv = document.getElementById('raos-insights');
+            const chartsDiv = document.getElementById('raos-charts');
+            
+            insightsDiv.innerHTML = '';
+            chartsDiv.innerHTML = '';
+
+            // Calculate comprehensive data
+            const totalSpend = filtered.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+            const byYear = filtered.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const byMonth = filtered.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const sortedMonths = Object.entries(byMonth).sort((a, b) => b[1] - a[1]);
+            const top3Months = sortedMonths.slice(0, 3);
+            
+            const byMediaType = filtered.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                acc[type] = (acc[type] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sortedMediaTypes = Object.entries(byMediaType).sort((a, b) => b[1] - a[1]);
+            
+            // Top TV Programs
+            const tvPrograms = filtered.filter(d => d['Media Category'] === 'Television' && d['Program Name'] && d['Program Name'].trim() !== '');
+            const byProgram = tvPrograms.reduce((acc, d) => {
+                const program = d['Program Name'];
+                const distributor = d.Distributor || 'Unknown';
+                const key = `${program} (${distributor})`;
+                acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topPrograms = Object.entries(byProgram).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            // Top Distributors/Channels
+            const byDistributor = filtered.reduce((acc, d) => {
+                const dist = d.Distributor || 'Unknown';
+                acc[dist] = (acc[dist] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topDistributors = Object.entries(byDistributor).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            // YouTube analysis
+            const youtubeData = filtered.filter(d => d.Is_YouTube);
+            const byYouTubeChannel = youtubeData.reduce((acc, d) => {
+                const channel = d.Distributor || 'Unknown';
+                acc[channel] = (acc[channel] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topYouTubeChannels = Object.entries(byYouTubeChannel).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            
+            // Digital Social analysis
+            const digitalSocialData = filtered.filter(d => d['Media Type'] === 'Digital Social');
+            const digitalSocialTotal = digitalSocialData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+            const digitalSocialByYear = digitalSocialData.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const digitalSocialByMonth = digitalSocialData.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+            const topDigitalSocialMonths = Object.entries(digitalSocialByMonth).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            const digitalSocialByDistributor = digitalSocialData.reduce((acc, d) => {
+                const dist = d.Distributor || 'Unknown';
+                acc[dist] = (acc[dist] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+            const topDigitalSocialChannels = Object.entries(digitalSocialByDistributor).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const digitalSocialYoY = digitalSocialByYear[2025] && digitalSocialByYear[2024] 
+                ? ((digitalSocialByYear[2025] - digitalSocialByYear[2024]) / digitalSocialByYear[2024] * 100).toFixed(1)
+                : null;
+            
+            // Year-over-year comparison
+            const yoyChange = byYear[2025] && byYear[2024] 
+                ? ((byYear[2025] - byYear[2024]) / byYear[2024] * 100).toFixed(1)
+                : null;
+
+            // Generate comprehensive text analysis
+            let analysisHTML = `
+                <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); line-height: 1.8; color: #333;">
+                    <h2 style="color: #764ba2; margin-bottom: 25px; font-size: 28px;">RAOS Advertising Investment Analysis</h2>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #764ba2; margin-bottom: 15px; font-size: 20px;">Executive Summary</h3>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            RAOS has invested a total of <strong style="color: #764ba2;">${formatCurrency(totalSpend)}</strong> in advertising across all media channels from January 2024 to December 2025. 
+                            ${yoyChange ? `The brand ${yoyChange > 0 ? 'increased' : 'decreased'} its advertising investment by <strong>${Math.abs(yoyChange)}%</strong> year-over-year, spending ${formatCurrency(byYear[2024])} in 2024 and ${formatCurrency(byYear[2025])} in 2025.` : ''}
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 6px; border-left: 4px solid #764ba2;">
+                        <h3 style="color: #764ba2; margin-bottom: 15px; font-size: 20px;">Peak Investment Periods</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            RAOS demonstrates a clear seasonal investment pattern with the highest spending concentrated in specific months:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${top3Months.map(([month, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${month}</strong>: ${formatCurrency(amount)} ${idx === 0 ? '(Peak Month)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                        <p style="font-size: 16px; margin-top: 15px; font-style: italic; color: #666;">
+                            These peak months represent critical periods for RAOS' advertising strategy, likely aligned with key sales seasons and consumer behavior patterns.
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #764ba2; margin-bottom: 15px; font-size: 20px;">Media Type Distribution</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            RAOS allocates its advertising budget across multiple media types:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${sortedMediaTypes.map(([type, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${type}</strong>: ${formatCurrency(amount)} (${((amount/totalSpend)*100).toFixed(1)}% of total)</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    ${topPrograms.length > 0 ? `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #764ba2; margin-bottom: 15px; font-size: 20px;">Top Television Programs</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            RAOS strategically places advertisements during high-impact television programming:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${topPrograms.map(([program, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${program}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #764ba2; margin-bottom: 15px; font-size: 20px;">Top Distribution Channels</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px;">
+                            The brand leverages a diverse network of distribution channels and platforms:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px;">
+                            ${topDistributors.map(([dist, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${dist}</strong>: ${formatCurrency(amount)} ${idx < 3 ? '(Top Channel)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    ${topYouTubeChannels.length > 0 ? `
+                    <div style="margin-bottom: 30px; background: #fff3cd; padding: 20px; border-radius: 6px; border-left: 4px solid #ffc107;">
+                        <h3 style="color: #856404; margin-bottom: 15px; font-size: 20px;">YouTube Channel Strategy</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px; color: #856404;">
+                            RAOS has invested ${formatCurrency(youtubeData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0))} in YouTube advertising, focusing on the following channels:
+                        </p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #856404;">
+                            ${topYouTubeChannels.map(([channel, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${channel}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    ${digitalSocialTotal > 0 ? `
+                    <div style="margin-bottom: 30px; background: #e7f3ff; padding: 20px; border-radius: 6px; border-left: 4px solid #2196F3;">
+                        <h3 style="color: #0d47a1; margin-bottom: 15px; font-size: 20px;">Digital Social Media Investment</h3>
+                        <p style="font-size: 16px; margin-bottom: 15px; color: #0d47a1;">
+                            RAOS has invested <strong>${formatCurrency(digitalSocialTotal)}</strong> in Digital Social media, representing <strong>${((digitalSocialTotal/totalSpend)*100).toFixed(1)}%</strong> of total advertising investment.
+                            ${digitalSocialYoY ? `Digital Social investment ${digitalSocialYoY > 0 ? 'increased' : 'decreased'} by <strong>${Math.abs(digitalSocialYoY)}%</strong> year-over-year (${formatCurrency(digitalSocialByYear[2024])} in 2024 vs ${formatCurrency(digitalSocialByYear[2025])} in 2025).` : ''}
+                        </p>
+                        ${topDigitalSocialMonths.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px; color: #0d47a1; font-weight: 600;">Peak Digital Social Investment Months:</p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #0d47a1;">
+                            ${topDigitalSocialMonths.map(([month, amount], idx) => 
+                                `<li style="margin-bottom: 8px;"><strong>${month}</strong>: ${formatCurrency(amount)} ${idx === 0 ? '(Peak Month)' : ''}</li>`
+                            ).join('')}
+                        </ul>
+                        ` : ''}
+                        ${topDigitalSocialChannels.length > 0 ? `
+                        <p style="font-size: 16px; margin-top: 15px; margin-bottom: 10px; color: #0d47a1; font-weight: 600;">Top Digital Social Platforms/Channels:</p>
+                        <ul style="font-size: 16px; padding-left: 25px; color: #0d47a1;">
+                            ${topDigitalSocialChannels.map(([channel, amount]) => 
+                                `<li style="margin-bottom: 8px;"><strong>${channel}</strong>: ${formatCurrency(amount)}</li>`
+                            ).join('')}
+                        </ul>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                        <h3 style="color: #764ba2; margin-bottom: 15px; font-size: 20px;">Strategic Insights</h3>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • RAOS maintains a diversified media mix, with ${sortedMediaTypes[0] ? sortedMediaTypes[0][0] : 'multiple'} channels representing the largest share of investment.
+                        </p>
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • The brand shows strong seasonal investment patterns, with ${top3Months[0] ? top3Months[0][0] : 'key months'} representing peak advertising periods.
+                        </p>
+                        ${topPrograms.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Television programming remains a core component, with strategic placements in programs like "${topPrograms[0] ? topPrograms[0][0].split(' (')[0] : ''}" reaching significant investment levels.
+                        </p>
+                        ` : ''}
+                        ${topYouTubeChannels.length > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Digital channels, particularly YouTube, represent a growing component of RAOS' media strategy, with targeted channel partnerships.
+                        </p>
+                        ` : ''}
+                        ${digitalSocialTotal > 0 ? `
+                        <p style="font-size: 16px; margin-bottom: 10px;">
+                            • Digital Social media investment accounts for ${((digitalSocialTotal/totalSpend)*100).toFixed(1)}% of total spending, ${digitalSocialYoY && parseFloat(digitalSocialYoY) > 0 ? 'showing strong growth' : 'demonstrating'} a strategic focus on social media platforms${topDigitalSocialChannels.length > 0 ? `, with ${topDigitalSocialChannels[0][0]} leading platform investments` : ''}.
+                        </p>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            insightsDiv.innerHTML = analysisHTML;
+
+            // Create charts
+            createMonthlySpendingChart(filtered, 'raos-monthly', 'RAOS Monthly Spending');
+            createMediaTypeChart(filtered, 'raos-media-type', 'RAOS Media Type Distribution');
+            createYearComparisonChart(filtered, 'raos-year', 'RAOS Year Comparison');
+            createTopProgramsChart(filtered, 'raos-programs', 'RAOS Top Programs/Distributors');
+        }
+
+        function createMonthlySpendingChart(data, containerId, title) {
+            const chartsDiv = document.getElementById(containerId.replace('-monthly', '-charts'));
+            if (!chartsDiv) return;
+            
+            // Remove existing chart if present
+            const existing = document.getElementById(containerId);
+            if (existing) {
+                if (chartInstances[containerId]) {
+                    chartInstances[containerId].destroy();
+                    delete chartInstances[containerId];
+                }
+                existing.remove();
+            }
+            
+            const container = document.createElement('div');
+            container.className = 'chart-container';
+            container.id = containerId;
+            chartsDiv.appendChild(container);
+            
+            // Create canvas element for Chart.js
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+
+            const byMonth = data.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            const labels = monthOrder.filter(m => byMonth[m]);
+            const values = labels.map(m => byMonth[m]);
+
+            // Destroy existing chart if present
+            if (chartInstances[containerId]) {
+                chartInstances[containerId].destroy();
+                delete chartInstances[containerId];
+            }
+
+            // Use the canvas we just created
+            if (!canvas) {
+                console.error(`Canvas not found in ${containerId}`);
+                return;
+            }
+
+            chartInstances[containerId] = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Spending ($)',
+                        data: values,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16 }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createMediaTypeChart(data, containerId, title) {
+            const chartsDiv = document.getElementById(containerId.replace('-media-type', '-charts'));
+            if (!chartsDiv) return;
+            
+            // Remove existing chart if present
+            const existing = document.getElementById(containerId);
+            if (existing) {
+                if (chartInstances[containerId]) {
+                    chartInstances[containerId].destroy();
+                    delete chartInstances[containerId];
+                }
+                existing.remove();
+            }
+            
+            const container = document.createElement('div');
+            container.className = 'chart-container';
+            container.id = containerId;
+            
+            // Create canvas element for Chart.js
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            chartsDiv.appendChild(container);
+
+            const byMediaType = data.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                acc[type] = (acc[type] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sorted = Object.entries(byMediaType).sort((a, b) => b[1] - a[1]);
+            const labels = sorted.map(([type]) => type);
+            const values = sorted.map(([, value]) => value);
+
+            // Verify element exists
+            const chartElement = document.getElementById(containerId);
+            if (!chartElement) {
+                console.error(`Chart container ${containerId} not found`);
+                return;
+            }
+
+            // Destroy existing chart if present
+            if (chartInstances[containerId]) {
+                chartInstances[containerId].destroy();
+            }
+
+            // Check if we have data
+            if (labels.length === 0 || values.length === 0) {
+                chartElement.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No data available for this chart</p>';
+                return;
+            }
+
+            // Get the canvas element
+            const chartCanvas = document.querySelector(`#${containerId} canvas`);
+            if (!chartCanvas) {
+                console.error(`Canvas not found in ${containerId}`);
+                return;
+            }
+
+            chartInstances[containerId] = new Chart(chartCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = formatCurrency(context.parsed);
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createYearComparisonChart(data, containerId, title) {
+            const chartsDiv = document.getElementById(containerId.replace('-year', '-charts'));
+            if (!chartsDiv) return;
+            
+            // Remove existing chart if present
+            const existing = document.getElementById(containerId);
+            if (existing) {
+                if (chartInstances[containerId]) {
+                    chartInstances[containerId].destroy();
+                    delete chartInstances[containerId];
+                }
+                existing.remove();
+            }
+            
+            const container = document.createElement('div');
+            container.className = 'chart-container';
+            container.id = containerId;
+            
+            // Create canvas element for Chart.js
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            chartsDiv.appendChild(container);
+
+            const byYearMonth = data.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                const month = d.Month_Name;
+                if (month) {
+                    const key = `${year}-${month}`;
+                    acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const data2024 = monthOrder.map(m => byYearMonth[`2024-${m}`] || 0);
+            const data2025 = monthOrder.map(m => byYearMonth[`2025-${m}`] || 0);
+
+            // Get the canvas element
+            const chartCanvas = document.querySelector(`#${containerId} canvas`);
+            if (!chartCanvas) {
+                console.error(`Canvas not found in ${containerId}`);
+                return;
+            }
+
+            // Destroy existing chart if present
+            if (chartInstances[containerId]) {
+                chartInstances[containerId].destroy();
+                delete chartInstances[containerId];
+            }
+
+            chartInstances[containerId] = new Chart(chartCanvas, {
+                type: 'line',
+                data: {
+                    labels: monthOrder,
+                    datasets: [{
+                        label: '2024',
+                        data: data2024,
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: '2025',
+                        data: data2025,
+                        borderColor: 'rgba(118, 75, 162, 1)',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createYouTubeChart(data, containerId, title) {
+            const chartsDiv = document.getElementById(containerId.replace('-youtube', '-charts'));
+            if (!chartsDiv) return;
+            
+            // Remove existing chart if present
+            const existing = document.getElementById(containerId);
+            if (existing) {
+                if (chartInstances[containerId]) {
+                    chartInstances[containerId].destroy();
+                    delete chartInstances[containerId];
+                }
+                existing.remove();
+            }
+            
+            const container = document.createElement('div');
+            container.className = 'chart-container';
+            container.id = containerId;
+            
+            // Create canvas element for Chart.js
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            chartsDiv.appendChild(container);
+
+            const byChannel = data.reduce((acc, d) => {
+                const channel = d.Distributor || 'Unknown';
+                acc[channel] = (acc[channel] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sorted = Object.entries(byChannel).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const labels = sorted.map(([channel]) => channel.length > 40 ? channel.substring(0, 40) + '...' : channel);
+            const values = sorted.map(([, value]) => value);
+
+            // Check if we have data
+            if (labels.length === 0 || values.length === 0) {
+                const chartElement = document.getElementById(containerId);
+                if (chartElement) {
+                    chartElement.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No data available for this chart</p>';
+                }
+                return;
+            }
+
+            // Get the canvas element
+            const chartCanvas = document.querySelector(`#${containerId} canvas`);
+            if (!chartCanvas) {
+                console.error(`Canvas not found in ${containerId}`);
+                return;
+            }
+
+            // Destroy existing chart if present
+            if (chartInstances[containerId]) {
+                chartInstances[containerId].destroy();
+                delete chartInstances[containerId];
+            }
+
+            chartInstances[containerId] = new Chart(chartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Spending ($)',
+                        data: values,
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16 }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTopProgramsChart(data, containerId, title) {
+            const chartsDiv = document.getElementById(containerId.replace('-programs', '-charts'));
+            if (!chartsDiv) return;
+            
+            // Remove existing chart if present
+            const existing = document.getElementById(containerId);
+            if (existing) {
+                if (chartInstances[containerId]) {
+                    chartInstances[containerId].destroy();
+                    delete chartInstances[containerId];
+                }
+                existing.remove();
+            }
+            
+            const container = document.createElement('div');
+            container.className = 'chart-container';
+            container.id = containerId;
+            
+            // Create canvas element for Chart.js
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            chartsDiv.appendChild(container);
+
+            const byProgram = data.reduce((acc, d) => {
+                const name = d.Display_Name || 'Unknown';
+                acc[name] = (acc[name] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sorted = Object.entries(byProgram).sort((a, b) => b[1] - a[1]).slice(0, 15);
+            const labels = sorted.map(([name]) => name.length > 30 ? name.substring(0, 30) + '...' : name);
+            const values = sorted.map(([, value]) => value);
+
+            // Check if we have data
+            if (labels.length === 0 || values.length === 0) {
+                const chartElement = document.getElementById(containerId);
+                if (chartElement) {
+                    chartElement.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No data available for this chart</p>';
+                }
+                return;
+            }
+
+            // Get the canvas element
+            const chartCanvas = document.querySelector(`#${containerId} canvas`);
+            if (!chartCanvas) {
+                console.error(`Canvas not found in ${containerId}`);
+                return;
+            }
+
+            // Destroy existing chart if present
+            if (chartInstances[containerId]) {
+                chartInstances[containerId].destroy();
+                delete chartInstances[containerId];
+            }
+
+            chartInstances[containerId] = new Chart(chartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Spending ($)',
+                        data: values,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16 }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderMediaCategory(brand = 'all', yearFilter = 'all') {
+            // Convert brand to ID format (sanitize for CSS selectors)
+            const brandId = brand === 'all' || brand === 'All Brands' ? 'all-brands' : brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const contentId = `media-category-content-${brandId}`;
+            const content = document.getElementById(contentId);
+            if (!content) return;
+            
+            let filtered = getFilteredData();
+            if (brand !== 'all' && brand !== 'All Brands' && brand.toUpperCase() !== 'ALL BRANDS') {
+                filtered = filtered.filter(d => d.Brand_Main === brand);
+            }
+            
+            // Apply year filter
+            if (yearFilter !== 'all' && yearFilter !== 'All Years') {
+                filtered = filtered.filter(d => d.Year === yearFilter);
+            }
+            
+            const byCategory = filtered.reduce((acc, d) => {
+                const cat = d['Media Category'] || 'Unknown';
+                acc[cat] = (acc[cat] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const byCategoryYear = filtered.reduce((acc, d) => {
+                const cat = d['Media Category'] || 'Unknown';
+                const year = d.Year || 2024;
+                const key = `${cat}-${year}`;
+                acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            // Use sanitized brandId for element IDs (safe for CSS selectors)
+            const pieId = `media-category-pie-${brandId}`;
+            const yearId = `media-category-year-${brandId}`;
+            const monthlyId = `media-category-monthly-${brandId}`;
+
+            // Only show year comparison chart if viewing all years
+            const showYearComparison = yearFilter === 'all' || yearFilter === 'All Years';
+            
+            content.innerHTML = `
+                <div class="grid">
+                    <div class="chart-container" id="${pieId}"><canvas></canvas></div>
+                    ${showYearComparison ? `<div class="chart-container" id="${yearId}"><canvas></canvas></div>` : ''}
+                </div>
+                <div class="chart-container large" id="${monthlyId}"><canvas></canvas></div>
+            `;
+
+            // Pie chart
+            const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+            
+            // Destroy existing charts
+            if (chartInstances[pieId]) {
+                chartInstances[pieId].destroy();
+                delete chartInstances[pieId];
+            }
+            if (chartInstances[yearId]) {
+                chartInstances[yearId].destroy();
+                delete chartInstances[yearId];
+            }
+            if (chartInstances[monthlyId]) {
+                chartInstances[monthlyId].destroy();
+                delete chartInstances[monthlyId];
+            }
+            
+            const pieCanvas = document.querySelector(`#${pieId} canvas`);
+            if (pieCanvas) {
+                chartInstances[pieId] = new Chart(pieCanvas, {
+                    type: 'pie',
+                    data: {
+                        labels: sorted.map(([cat]) => cat),
+                        datasets: [{
+                            data: sorted.map(([, value]) => value),
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(118, 75, 162, 0.8)',
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(54, 162, 235, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Media Category Distribution', font: { size: 16 } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ${formatCurrency(context.parsed)}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Year comparison (only show if viewing all years)
+            if (showYearComparison) {
+                const categories = [...new Set(filtered.map(d => d['Media Category']))];
+                const data2024 = categories.map(cat => byCategoryYear[`${cat}-2024`] || 0);
+                const data2025 = categories.map(cat => byCategoryYear[`${cat}-2025`] || 0);
+
+                const yearCanvas = document.querySelector(`#${yearId} canvas`);
+                if (yearCanvas) {
+                    chartInstances[yearId] = new Chart(yearCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: categories,
+                            datasets: [{
+                                label: '2024',
+                                data: data2024,
+                                backgroundColor: 'rgba(102, 126, 234, 0.8)'
+                            }, {
+                                label: '2025',
+                                data: data2025,
+                                backgroundColor: 'rgba(118, 75, 162, 0.8)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: { display: true, text: 'Media Category by Year', font: { size: 16 } }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return formatCurrency(value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                // Destroy year chart if it exists
+                if (chartInstances[yearId]) {
+                    chartInstances[yearId].destroy();
+                    delete chartInstances[yearId];
+                }
+            }
+
+            // Monthly trend
+            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            const byCategoryMonth = filtered.reduce((acc, d) => {
+                const cat = d['Media Category'] || 'Unknown';
+                const month = d.Month_Name;
+                if (month) {
+                    const key = `${cat}-${month}`;
+                    acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const categories = [...new Set(filtered.map(d => d['Media Category']))];
+            const datasets = categories.map((cat, idx) => ({
+                label: cat,
+                data: monthOrder.map(m => byCategoryMonth[`${cat}-${m}`] || 0),
+                borderColor: `hsl(${idx * 60}, 70%, 50%)`,
+                backgroundColor: `hsla(${idx * 60}, 70%, 50%, 0.1)`,
+                tension: 0.4
+            }));
+
+            const monthlyCanvas = document.querySelector(`#${monthlyId} canvas`);
+            if (monthlyCanvas) {
+                chartInstances[monthlyId] = new Chart(monthlyCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: monthOrder,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Media Category Monthly Trends', font: { size: 16 } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function renderMediaType(brand = 'all', yearFilter = 'all') {
+            // Convert brand to ID format (sanitize for CSS selectors)
+            const brandId = brand === 'all' || brand === 'All Brands' ? 'all-brands' : brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const contentId = `media-type-content-${brandId}`;
+            const content = document.getElementById(contentId);
+            if (!content) return;
+            
+            let filtered = getFilteredData();
+            if (brand !== 'all' && brand !== 'All Brands' && brand.toUpperCase() !== 'ALL BRANDS') {
+                filtered = filtered.filter(d => d.Brand_Main === brand);
+            }
+            
+            // Apply year filter
+            if (yearFilter !== 'all' && yearFilter !== 'All Years') {
+                filtered = filtered.filter(d => d.Year === yearFilter);
+            }
+            
+            // Use sanitized brandId for element IDs (safe for CSS selectors)
+            const pieId = `media-type-pie-${brandId}`;
+            const yearId = `media-type-year-${brandId}`;
+            const tableId = `media-type-table-${brandId}`;
+
+            // Only show year comparison chart if viewing all years
+            const showYearComparison = yearFilter === 'all' || yearFilter === 'All Years';
+
+            content.innerHTML = `
+                <div class="grid">
+                    <div class="chart-container" id="${pieId}"><canvas></canvas></div>
+                    ${showYearComparison ? `<div class="chart-container" id="${yearId}"><canvas></canvas></div>` : ''}
+                </div>
+                <div id="${tableId}"></div>
+            `;
+
+            const byType = filtered.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                acc[type] = (acc[type] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const byTypeYear = filtered.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                const year = d.Year || 2024;
+                const key = `${type}-${year}`;
+                acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            // Pie chart
+            const sorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+            
+            // Destroy existing charts
+            if (chartInstances[pieId]) {
+                chartInstances[pieId].destroy();
+                delete chartInstances[pieId];
+            }
+            if (chartInstances[yearId]) {
+                chartInstances[yearId].destroy();
+                delete chartInstances[yearId];
+            }
+            
+            const typePieCanvas = document.querySelector(`#${pieId} canvas`);
+            if (typePieCanvas) {
+                chartInstances[pieId] = new Chart(typePieCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: sorted.map(([type]) => type),
+                        datasets: [{
+                            data: sorted.map(([, value]) => value),
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(118, 75, 162, 0.8)',
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(255, 206, 86, 0.8)',
+                                'rgba(75, 192, 192, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Media Type Distribution', font: { size: 16 } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${context.label}: ${formatCurrency(context.parsed)} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Year comparison (only show if viewing all years)
+            if (showYearComparison) {
+                const types = [...new Set(filtered.map(d => d['Media Type']))];
+                const data2024 = types.map(type => byTypeYear[`${type}-2024`] || 0);
+                const data2025 = types.map(type => byTypeYear[`${type}-2025`] || 0);
+
+                const typeYearCanvas = document.querySelector(`#${yearId} canvas`);
+                if (typeYearCanvas) {
+                    chartInstances[yearId] = new Chart(typeYearCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: types,
+                            datasets: [{
+                                label: '2024',
+                                data: data2024,
+                                backgroundColor: 'rgba(102, 126, 234, 0.8)'
+                            }, {
+                                label: '2025',
+                                data: data2025,
+                                backgroundColor: 'rgba(118, 75, 162, 0.8)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: { display: true, text: 'Media Type by Year', font: { size: 16 } }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return formatCurrency(value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                // Destroy year chart if it exists
+                if (chartInstances[yearId]) {
+                    chartInstances[yearId].destroy();
+                    delete chartInstances[yearId];
+                }
+            }
+
+            // Top programs/distributors by media type
+            const byTypeProgram = filtered.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                const program = d.Display_Name || 'Unknown';
+                const key = `${type}-${program}`;
+                acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const topByType = {};
+            Object.entries(byTypeProgram).forEach(([key, value]) => {
+                const [type, program] = key.split('-', 2);
+                if (!topByType[type]) topByType[type] = [];
+                topByType[type].push({ program, value });
+            });
+
+            Object.keys(topByType).forEach(type => {
+                topByType[type].sort((a, b) => b.value - a.value);
+                topByType[type] = topByType[type].slice(0, 10);
+            });
+
+            // Create a sortable table for top programs/distributors
+            const tableContainer = document.getElementById(tableId);
+            if (tableContainer) {
+                // Flatten the data for sorting
+                const tableData = [];
+                Object.entries(topByType).forEach(([type, programs]) => {
+                    programs.forEach((p) => {
+                        tableData.push({
+                            mediaType: type,
+                            program: p.program,
+                            spending: p.value
+                        });
+                    });
+                });
+
+                // Sort by Total Spending (descending) by default
+                tableData.sort((a, b) => b.spending - a.spending);
+
+                let html = '<h3 style="margin-top: 30px; margin-bottom: 20px; color: #333;">Top Programs/Distributors by Media Type</h3>';
+                html += `<div class="table-container">
+                    <table id="media-type-sortable-table-${brandId}" class="sortable-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" data-column="mediaType" data-sort="desc">
+                                    Media Type <span class="sort-indicator">▼</span>
+                                </th>
+                                <th class="sortable-header" data-column="program" data-sort="none">
+                                    Top Programs/Distributors <span class="sort-indicator"></span>
+                                </th>
+                                <th class="sortable-header active-sort" data-column="spending" data-sort="desc">
+                                    Total Spending <span class="sort-indicator">▼</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                
+                // Group by media type for display with rowspan
+                const groupedData = {};
+                tableData.forEach(item => {
+                    if (!groupedData[item.mediaType]) {
+                        groupedData[item.mediaType] = [];
+                    }
+                    groupedData[item.mediaType].push(item);
+                });
+
+                // Render table rows maintaining rowspan structure with expand/collapse
+                // Initial state: all groups collapsed - show Media Type with total spending
+                Object.entries(groupedData).forEach(([type, items]) => {
+                    // Calculate total spending for this media type
+                    const totalSpending = items.reduce((sum, item) => sum + item.spending, 0);
+                    
+                    items.forEach((item, idx) => {
+                        if (idx === 0) {
+                            // First row: Media Type header with total spending visible when collapsed
+                            html += `<tr data-media-type="${type}" data-program="${item.program}" data-spending="${item.spending}" class="media-type-group-header" data-group="${type}" data-total="${totalSpending}">
+                                <td rowspan="1" class="media-type-cell" data-group="${type}">
+                                    <span class="expand-icon" data-group="${type}">+</span>
+                                    ${type}
+                                </td>
+                                <td class="program-cell collapsed">${item.program}</td>
+                                <td class="spending-cell" data-group="${type}" data-is-total="true">${formatCurrency(totalSpending)}</td>
+                            </tr>`;
+                        } else {
+                            // Additional rows: all collapsed initially (entire row hidden)
+                            html += `<tr data-media-type="${type}" data-program="${item.program}" data-spending="${item.spending}" class="media-type-group-row collapsed" data-group="${type}">
+                                <td class="program-cell">${item.program}</td>
+                                <td class="spending-cell" data-is-total="false">${formatCurrency(item.spending)}</td>
+                            </tr>`;
+                        }
+                    });
+                });
+
+                html += '</tbody></table></div>';
+                tableContainer.innerHTML = html;
+
+                // Add sorting functionality
+                setupTableSorting(`media-type-sortable-table-${brandId}`, tableData);
+                
+                // Add expand/collapse functionality
+                setupTableExpandCollapse(`media-type-sortable-table-${brandId}`);
+            }
+        }
+
+        function setupTableExpandCollapse(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            // Add click handlers to media type cells
+            const mediaTypeCells = table.querySelectorAll('.media-type-cell');
+            mediaTypeCells.forEach(cell => {
+                cell.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const group = this.getAttribute('data-group');
+                    toggleMediaTypeGroup(table, group);
+                });
+            });
+        }
+
+        function toggleMediaTypeGroup(table, group) {
+            const groupRows = table.querySelectorAll(`tr[data-group="${group}"]`);
+            const expandIcon = table.querySelector(`.expand-icon[data-group="${group}"]`);
+            const mediaTypeCell = table.querySelector(`.media-type-cell[data-group="${group}"]`);
+            const firstRow = groupRows[0];
+            const totalSpending = firstRow.getAttribute('data-total');
+            
+            if (!groupRows.length || !expandIcon || !mediaTypeCell) return;
+
+            // Check if group is expanded or collapsed
+            const programCell = firstRow.querySelector('.program-cell');
+            const isExpanded = !programCell || !programCell.classList.contains('collapsed');
+
+            if (isExpanded) {
+                // Collapse: hide all program rows, show total spending in first row
+                groupRows.forEach((row, index) => {
+                    if (index === 0) {
+                        // First row: hide program cell, show total spending
+                        const programCell = row.querySelector('.program-cell');
+                        if (programCell) programCell.classList.add('collapsed');
+                        
+                        // Update spending cell to show total
+                        const spendingCell = row.querySelector('.spending-cell[data-group="' + group + '"]');
+                        if (spendingCell) {
+                            spendingCell.setAttribute('data-is-total', 'true');
+                            spendingCell.textContent = formatCurrency(parseFloat(totalSpending));
+                            spendingCell.style.fontWeight = '600';
+                            spendingCell.style.color = '#667eea';
+                        }
+                    } else {
+                        // Additional rows: hide entire row
+                        row.classList.add('collapsed');
+                    }
+                });
+                // Update rowspan to 1 when collapsed (only Media Type visible)
+                mediaTypeCell.setAttribute('rowspan', '1');
+                expandIcon.textContent = '+';
+            } else {
+                // Expand: show all rows, show individual spending in first row
+                groupRows.forEach((row, index) => {
+                    if (index === 0) {
+                        // First row: show program cell, show individual spending
+                        const programCell = row.querySelector('.program-cell');
+                        if (programCell) programCell.classList.remove('collapsed');
+                        
+                        // Update spending cell to show individual value
+                        const spendingCell = row.querySelector('.spending-cell[data-group="' + group + '"]');
+                        if (spendingCell) {
+                            const individualSpending = row.getAttribute('data-spending');
+                            spendingCell.setAttribute('data-is-total', 'false');
+                            spendingCell.textContent = formatCurrency(parseFloat(individualSpending));
+                            spendingCell.style.fontWeight = 'normal';
+                            spendingCell.style.color = '';
+                        }
+                    } else {
+                        // Additional rows: show entire row
+                        row.classList.remove('collapsed');
+                    }
+                });
+                // Update rowspan to total number of rows when expanded
+                mediaTypeCell.setAttribute('rowspan', groupRows.length.toString());
+                expandIcon.textContent = '−';
+            }
+        }
+
+        function renderTemporal(brand = 'all') {
+            // Convert brand to ID format (sanitize for CSS selectors)
+            const brandId = brand === 'all' || brand === 'All Brands' ? 'all-brands' : brand.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const contentId = `temporal-content-${brandId}`;
+            const content = document.getElementById(contentId);
+            if (!content) return;
+            
+            let filtered = getFilteredData();
+            if (brand !== 'all' && brand !== 'All Brands' && brand.toUpperCase() !== 'ALL BRANDS') {
+                filtered = filtered.filter(d => d.Brand_Main === brand);
+            }
+            
+            // Use sanitized brandId for element IDs (safe for CSS selectors)
+            const monthlyId = `temporal-monthly-${brandId}`;
+            const yearTotalId = `temporal-year-total-${brandId}`;
+            const byBrandId = `temporal-by-brand-${brandId}`;
+
+            // Generate filter controls for "All Brands" view
+            let filterControlsHTML = '';
+            if (brand === 'all' || brand === 'All Brands' || brandId === 'all-brands') {
+                filterControlsHTML = `
+                    <div class="year-filters" id="temporal-year-filters" style="padding: 15px 20px; background: white; border-bottom: 1px solid #e9ecef; margin-bottom: 20px;">
+                        <span style="margin-right: 15px; font-weight: 600; color: #666;">Filter by Year:</span>
+                        <button class="year-filter-btn active" data-year="all" onclick="applyTemporalYearFilter('all', this)">All Years</button>
+                        <button class="year-filter-btn" data-year="2024" onclick="applyTemporalYearFilter(2024, this)">2024</button>
+                        <button class="year-filter-btn" data-year="2025" onclick="applyTemporalYearFilter(2025, this)">2025</button>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = `
+                <div class="grid">
+                    <div class="chart-container large" id="${monthlyId}"><canvas></canvas></div>
+                    <div class="chart-container" id="${yearTotalId}"><canvas></canvas></div>
+                </div>
+                ${filterControlsHTML}
+                ${(brand === 'all' || brand === 'All Brands' || brandId === 'all-brands') ? `
+                    <div class="chart-container large" id="${byBrandId}"><canvas></canvas></div>
+                    <div id="temporal-insights-analysis" style="background: white; padding: 25px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+                ` : ''}
+            `;
+            
+            // Store byBrandYearMonth for filter updates (only for All Brands view)
+            let storedByBrandYearMonth = null;
+            if (brand === 'all' || brand === 'All Brands' || brandId === 'all-brands') {
+                storedByBrandYearMonth = filtered.reduce((acc, d) => {
+                    const brandName = d.Brand_Main || 'Unknown';
+                    const year = d.Year || 2024;
+                    const month = d.Month_Name;
+                    if (month) {
+                        const key = `${brandName}-${year}-${month}`;
+                        acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                    }
+                    return acc;
+                }, {});
+
+            }
+
+            // Monthly spending by year
+            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const byYearMonth = filtered.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                const month = d.Month_Name;
+                if (month) {
+                    const key = `${year}-${month}`;
+                    acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const data2024 = monthOrder.map(m => byYearMonth[`2024-${m}`] || 0);
+            const data2025 = monthOrder.map(m => byYearMonth[`2025-${m}`] || 0);
+
+            // Destroy existing charts
+            if (chartInstances[monthlyId]) {
+                chartInstances[monthlyId].destroy();
+                delete chartInstances[monthlyId];
+            }
+            if (chartInstances[yearTotalId]) {
+                chartInstances[yearTotalId].destroy();
+                delete chartInstances[yearTotalId];
+            }
+            if (chartInstances[byBrandId]) {
+                chartInstances[byBrandId].destroy();
+                delete chartInstances[byBrandId];
+            }
+            
+            const temporalMonthlyCanvas = document.querySelector(`#${monthlyId} canvas`);
+            if (temporalMonthlyCanvas) {
+                chartInstances[monthlyId] = new Chart(temporalMonthlyCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: monthOrder,
+                        datasets: [{
+                            label: '2024',
+                            data: data2024,
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: '2025',
+                            data: data2025,
+                            borderColor: 'rgba(118, 75, 162, 1)',
+                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Monthly Spending: Year over Year Comparison', font: { size: 16 } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Year totals
+            const byYear = filtered.reduce((acc, d) => {
+                const year = d.Year || 2024;
+                acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const temporalYearCanvas = document.querySelector(`#${yearTotalId} canvas`);
+            if (temporalYearCanvas) {
+                chartInstances[yearTotalId] = new Chart(temporalYearCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: ['2024', '2025'],
+                        datasets: [{
+                            label: 'Total Spending',
+                            data: [byYear[2024] || 0, byYear[2025] || 0],
+                            backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Total Spending by Year', font: { size: 16 } },
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // By brand (only show if viewing all brands)
+            if (brand === 'all' || brand === 'All Brands' || brandId === 'all-brands') {
+                // Calculate byBrandYearMonth for initial render
+                const byBrandYearMonth = storedByBrandYearMonth || filtered.reduce((acc, d) => {
+                    const brandName = d.Brand_Main || 'Unknown';
+                    const year = d.Year || 2024;
+                    const month = d.Month_Name;
+                    if (month) {
+                        const key = `${brandName}-${year}-${month}`;
+                        acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                    }
+                    return acc;
+                }, {});
+
+                // Initial render of the chart (after a small delay to ensure DOM is ready)
+                setTimeout(() => {
+                    updateTemporalBrandChart(byBrandId, filtered, byBrandYearMonth);
+                    generateTemporalInsights(filtered);
+                }, 100);
+            }
+        }
+
+        function updateTemporalBrandChart(byBrandId, filtered, byBrandYearMonth = null) {
+            // Recalculate byBrandYearMonth if not provided
+            if (!byBrandYearMonth) {
+                byBrandYearMonth = filtered.reduce((acc, d) => {
+                    const brandName = d.Brand_Main || 'Unknown';
+                    const year = d.Year || 2024;
+                    const month = d.Month_Name;
+                    if (month) {
+                        const key = `${brandName}-${year}-${month}`;
+                        acc[key] = (acc[key] || 0) + (d.Dollars_Clean || 0);
+                    }
+                    return acc;
+                }, {});
+            }
+
+            // Get all unique brands from data (show all brands)
+            const allBrands = dashboardData.summary.unique_brands || [];
+
+            // Get selected year from filter
+            const selectedYear = yearFilters['temporal'] || 'all';
+            const selectedYears = [];
+            if (selectedYear === 'all') {
+                selectedYears.push('2024', '2025');
+            } else {
+                selectedYears.push(String(selectedYear));
+            }
+
+            const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const colors = [
+                { solid: 'rgba(102, 126, 234, 1)', light: 'rgba(102, 126, 234, 0.1)', dashed: 'rgba(102, 126, 234, 0.6)', dashedBg: 'rgba(102, 126, 234, 0.05)' },
+                { solid: 'rgba(118, 75, 162, 1)', light: 'rgba(118, 75, 162, 0.1)', dashed: 'rgba(118, 75, 162, 0.6)', dashedBg: 'rgba(118, 75, 162, 0.05)' },
+                { solid: 'rgba(255, 99, 132, 1)', light: 'rgba(255, 99, 132, 0.1)', dashed: 'rgba(255, 99, 132, 0.6)', dashedBg: 'rgba(255, 99, 132, 0.05)' },
+                { solid: 'rgba(54, 162, 235, 1)', light: 'rgba(54, 162, 235, 0.1)', dashed: 'rgba(54, 162, 235, 0.6)', dashedBg: 'rgba(54, 162, 235, 0.05)' },
+                { solid: 'rgba(255, 206, 86, 1)', light: 'rgba(255, 206, 86, 0.1)', dashed: 'rgba(255, 206, 86, 0.6)', dashedBg: 'rgba(255, 206, 86, 0.05)' },
+                { solid: 'rgba(75, 192, 192, 1)', light: 'rgba(75, 192, 192, 0.1)', dashed: 'rgba(75, 192, 192, 0.6)', dashedBg: 'rgba(75, 192, 192, 0.05)' },
+                { solid: 'rgba(153, 102, 255, 1)', light: 'rgba(153, 102, 255, 0.1)', dashed: 'rgba(153, 102, 255, 0.6)', dashedBg: 'rgba(153, 102, 255, 0.05)' },
+                { solid: 'rgba(255, 159, 64, 1)', light: 'rgba(255, 159, 64, 0.1)', dashed: 'rgba(255, 159, 64, 0.6)', dashedBg: 'rgba(255, 159, 64, 0.05)' },
+                { solid: 'rgba(199, 199, 199, 1)', light: 'rgba(199, 199, 199, 0.1)', dashed: 'rgba(199, 199, 199, 0.6)', dashedBg: 'rgba(199, 199, 199, 0.05)' }
+            ];
+
+            const datasets = [];
+            
+            allBrands.forEach((brandName, brandIndex) => {
+                const colorSet = colors[brandIndex % colors.length];
+                
+                // Add 2024 data (dashed line)
+                if (selectedYears.includes('2024')) {
+                    const brand2024 = monthOrder.map(m => byBrandYearMonth[`${brandName}-2024-${m}`] || 0);
+                    datasets.push({
+                        label: `${brandName} 2024`,
+                        data: brand2024,
+                        borderColor: colorSet.dashed,
+                        backgroundColor: colorSet.dashedBg,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false
+                    });
+                }
+                
+                // Add 2025 data (solid line)
+                if (selectedYears.includes('2025')) {
+                    const brand2025 = monthOrder.map(m => byBrandYearMonth[`${brandName}-2025-${m}`] || 0);
+                    datasets.push({
+                        label: `${brandName} 2025`,
+                        data: brand2025,
+                        borderColor: colorSet.solid,
+                        backgroundColor: colorSet.light,
+                        tension: 0.4,
+                        fill: false
+                    });
+                }
+            });
+
+            const temporalBrandCanvas = document.querySelector(`#${byBrandId} canvas`);
+            if (temporalBrandCanvas) {
+                // Destroy existing chart
+                if (chartInstances[byBrandId]) {
+                    chartInstances[byBrandId].destroy();
+                    delete chartInstances[byBrandId];
+                }
+
+                // Create new chart with filtered data
+                chartInstances[byBrandId] = new Chart(temporalBrandCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: monthOrder,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Monthly Spending by Brand: Year over Year', font: { size: 16 } },
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    boxWidth: 12,
+                                    padding: 10,
+                                    font: { size: 12 }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function generateTemporalInsights(filtered) {
+            const insightsDiv = document.getElementById('temporal-insights-analysis');
+            if (!insightsDiv) return;
+
+            const selectedYear = yearFilters['temporal'] || 'all';
+            let analysisData = filtered;
+
+            // Filter by year if not 'all'
+            if (selectedYear !== 'all') {
+                analysisData = filtered.filter(d => d.Year == selectedYear);
+            }
+
+            if (analysisData.length === 0) {
+                insightsDiv.innerHTML = '<p style="color: #666; text-align: center;">No data available for analysis</p>';
+                return;
+            }
+
+            // Calculate monthly spending
+            const byMonth = analysisData.reduce((acc, d) => {
+                const month = d.Month_Name;
+                if (month) {
+                    acc[month] = (acc[month] || 0) + (d.Dollars_Clean || 0);
+                }
+                return acc;
+            }, {});
+
+            const sortedMonths = Object.entries(byMonth).sort((a, b) => b[1] - a[1]);
+            const topMonths = sortedMonths.slice(0, 3);
+            const peakMonths = topMonths.map(([month]) => month);
+
+            // Calculate spending by media type
+            const byMediaType = analysisData.reduce((acc, d) => {
+                const type = d['Media Type'] || 'Unknown';
+                acc[type] = (acc[type] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sortedMediaTypes = Object.entries(byMediaType).sort((a, b) => b[1] - a[1]);
+            const topMediaType = sortedMediaTypes[0]?.[0] || 'N/A';
+
+            // Top social media platforms
+            const socialMedia = analysisData.filter(d => d['Media Type'] === 'Digital Social');
+            const bySocialPlatform = socialMedia.reduce((acc, d) => {
+                const platform = d.Display_Name || d.Distributor || 'Unknown';
+                acc[platform] = (acc[platform] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const topSocialPlatforms = Object.entries(bySocialPlatform)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([platform]) => platform);
+
+            // Top TV programs
+            const tvData = analysisData.filter(d => d['Media Category'] === 'Television' && d['Program Name'] && d['Program Name'].trim() !== '');
+            const byTVProgram = tvData.reduce((acc, d) => {
+                const program = d['Program Name'] || 'Unknown';
+                acc[program] = (acc[program] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const topTVPrograms = Object.entries(byTVProgram)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([program]) => program);
+
+            // Top radio programs
+            const radioData = analysisData.filter(d => d['Media Category'] === 'Radio' && d['Program Name'] && d['Program Name'].trim() !== '');
+            const byRadioProgram = radioData.reduce((acc, d) => {
+                const program = d['Program Name'] || 'Unknown';
+                acc[program] = (acc[program] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const topRadioPrograms = Object.entries(byRadioProgram)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([program]) => program);
+
+            // Top digital display/distributors
+            const digitalDisplay = analysisData.filter(d => d['Media Type'] === 'Digital Display');
+            const byDigitalDistributor = digitalDisplay.reduce((acc, d) => {
+                const distributor = d.Display_Name || d.Distributor || 'Unknown';
+                acc[distributor] = (acc[distributor] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const topDigitalDistributors = Object.entries(byDigitalDistributor)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([distributor]) => distributor);
+
+            // Brand spending comparison - detailed analysis
+            const byBrand = analysisData.reduce((acc, d) => {
+                const brand = d.Brand_Main || 'Unknown';
+                acc[brand] = (acc[brand] || 0) + (d.Dollars_Clean || 0);
+                return acc;
+            }, {});
+
+            const sortedBrands = Object.entries(byBrand).sort((a, b) => b[1] - a[1]);
+            const topBrand = sortedBrands[0]?.[0] || 'N/A';
+            const top3Brands = sortedBrands.slice(0, 3);
+            const totalSpending = sortedBrands.reduce((sum, [, value]) => sum + value, 0);
+
+            // Brand channel preferences - what channels each top brand uses
+            const brandChannelPreferences = {};
+            top3Brands.forEach(([brandName]) => {
+                const brandData = analysisData.filter(d => d.Brand_Main === brandName);
+                const byChannel = brandData.reduce((acc, d) => {
+                    const channel = d['Media Type'] || 'Unknown';
+                    acc[channel] = (acc[channel] || 0) + (d.Dollars_Clean || 0);
+                    return acc;
+                }, {});
+                brandChannelPreferences[brandName] = Object.entries(byChannel)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3);
+            });
+
+            // Analyze specific months: January, March, April
+            const januaryData = analysisData.filter(d => d.Month_Name === 'January');
+            const marchData = analysisData.filter(d => d.Month_Name === 'March');
+            const aprilData = analysisData.filter(d => d.Month_Name === 'April');
+
+            const analyzeMonth = (monthData, monthName) => {
+                if (monthData.length === 0) return null;
+                
+                const monthSpending = monthData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+                const byBrandMonth = monthData.reduce((acc, d) => {
+                    const brand = d.Brand_Main || 'Unknown';
+                    acc[brand] = (acc[brand] || 0) + (d.Dollars_Clean || 0);
+                    return acc;
+                }, {});
+                
+                const topBrandMonth = Object.entries(byBrandMonth)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3);
+                
+                const byChannelMonth = monthData.reduce((acc, d) => {
+                    const channel = d['Media Type'] || 'Unknown';
+                    acc[channel] = (acc[channel] || 0) + (d.Dollars_Clean || 0);
+                    return acc;
+                }, {});
+                
+                const topChannelMonth = Object.entries(byChannelMonth)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)[0];
+                
+                return {
+                    month: monthName,
+                    spending: monthSpending,
+                    topBrands: topBrandMonth,
+                    topChannel: topChannelMonth
+                };
+            };
+
+            const januaryAnalysis = analyzeMonth(januaryData, 'January');
+            const marchAnalysis = analyzeMonth(marchData, 'March');
+            const aprilAnalysis = analyzeMonth(aprilData, 'April');
+
+            // Year-over-year comparison (if all years)
+            let yoyInsight = '';
+            if (selectedYear === 'all') {
+                const byYear = analysisData.reduce((acc, d) => {
+                    const year = d.Year || 2024;
+                    acc[year] = (acc[year] || 0) + (d.Dollars_Clean || 0);
+                    return acc;
+                }, {});
+
+                const spend2024 = byYear[2024] || 0;
+                const spend2025 = byYear[2025] || 0;
+                const yoyChange = spend2024 > 0 ? ((spend2025 - spend2024) / spend2024 * 100).toFixed(1) : 0;
+                
+                if (yoyChange > 0) {
+                    yoyInsight = `The total advertising investment increased by <strong>${yoyChange}%</strong> from 2024 to 2025, with ${formatCurrency(spend2024)} spent in 2024 and ${formatCurrency(spend2025)} in 2025.`;
+                } else if (yoyChange < 0) {
+                    yoyInsight = `The total advertising investment decreased by <strong>${Math.abs(yoyChange)}%</strong> from 2024 to 2025, with ${formatCurrency(spend2024)} spent in 2024 and ${formatCurrency(spend2025)} in 2025.`;
+                } else {
+                    yoyInsight = `The total advertising investment remained relatively stable between 2024 (${formatCurrency(spend2024)}) and 2025 (${formatCurrency(spend2025)}).`;
+                }
+            }
+
+            // Map months to US seasonal events - enhanced
+            const seasonalEvents = {
+                'January': {
+                    events: ['New Year celebrations', 'post-holiday sales and clearance events', 'National Soup Month', 'winter comfort food season'],
+                    explanation: 'January sees increased activity due to New Year resolutions, post-holiday sales, and the focus on comfort foods during winter. National Soup Month also drives food brand promotions.'
+                },
+                'February': {
+                    events: ['Valentine\'s Day', 'Super Bowl (first Sunday)', 'American Heart Month'],
+                    explanation: 'Valentine\'s Day drives food and dining promotions, while the Super Bowl is one of the biggest advertising events of the year.'
+                },
+                'March': {
+                    events: ['March Madness (NCAA Basketball Tournament)', 'St. Patrick\'s Day', 'spring season kickoff', 'National Nutrition Month'],
+                    explanation: 'March Madness creates significant advertising opportunities, especially for food brands targeting sports viewers. St. Patrick\'s Day and the start of spring also drive food-related promotions.'
+                },
+                'April': {
+                    events: ['Easter (varies, typically late March to late April)', 'spring holidays', 'National Grilled Cheese Month', 'Earth Day'],
+                    explanation: 'Easter is a major food shopping holiday, driving increased advertising for meal preparation products. Spring holidays and seasonal transitions also boost food brand activity.'
+                },
+                'May': {
+                    events: ['Mother\'s Day', 'Memorial Day', 'graduation season'],
+                    explanation: 'Mother\'s Day and Memorial Day weekend drive family meal planning and food purchases.'
+                },
+                'June': {
+                    events: ['Father\'s Day', 'summer season kickoff', 'graduation season'],
+                    explanation: 'Father\'s Day and the start of summer grilling season increase food brand advertising.'
+                },
+                'July': {
+                    events: ['Independence Day (4th of July)', 'summer peak', 'BBQ season'],
+                    explanation: 'The 4th of July is a major food holiday, especially for grilling and outdoor dining products.'
+                },
+                'August': {
+                    events: ['Back-to-school season', 'end of summer'],
+                    explanation: 'Back-to-school drives family meal planning and lunch product promotions.'
+                },
+                'September': {
+                    events: ['Back-to-school', 'Labor Day', 'fall season'],
+                    explanation: 'Continued back-to-school activity and the transition to fall drive food brand promotions.'
+                },
+                'October': {
+                    events: ['Halloween', 'fall season', 'comfort food season'],
+                    explanation: 'Halloween drives candy and snack promotions, while fall comfort foods see increased advertising.'
+                },
+                'November': {
+                    events: ['Thanksgiving', 'Black Friday preparation', 'holiday season kickoff'],
+                    explanation: 'Thanksgiving is one of the biggest food shopping periods, driving significant advertising investment.'
+                },
+                'December': {
+                    events: ['Christmas', 'holiday shopping season', 'New Year\'s Eve preparation'],
+                    explanation: 'The holiday season represents peak food shopping and advertising investment.'
+                }
+            };
+
+            // Generate seasonal insights
+            const seasonalInsights = peakMonths.map(month => {
+                const eventInfo = seasonalEvents[month] || { events: ['seasonal period'], explanation: '' };
+                const spending = formatCurrency(byMonth[month] || 0);
+                return `<strong>${month}</strong> (${spending}) - ${eventInfo.events.join(', ')}`;
+            }).join(', ');
+
+            // Build the analysis HTML
+            let analysisHTML = `
+                <h2 style="color: #667eea; margin-bottom: 20px; font-size: 24px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                    Temporal Analysis Insights ${selectedYear === 'all' ? '(2024-2025)' : `(${selectedYear})`}
+                </h2>
+            `;
+
+            if (yoyInsight) {
+                analysisHTML += `
+                    <div style="background: #f0f4ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                        <h3 style="color: #667eea; margin-top: 0; margin-bottom: 10px; font-size: 18px;">Year-over-Year Performance</h3>
+                        <p style="margin: 0; line-height: 1.6; color: #333;">${yoyInsight}</p>
+                    </div>
+                `;
+            }
+
+            // Top Brands Analysis
+            if (top3Brands.length > 0) {
+                const brandsList = top3Brands.map(([brand, spending], index) => {
+                    const percentage = totalSpending > 0 ? ((spending / totalSpending) * 100).toFixed(1) : 0;
+                    const channels = brandChannelPreferences[brand] || [];
+                    const channelList = channels.length > 0 
+                        ? channels.map(([channel, amount]) => `${channel} (${formatCurrency(amount)})`).join(', ')
+                        : 'Various channels';
+                    return `
+                        <li style="margin-bottom: 12px;">
+                            <strong>${index + 1}. ${brand}</strong> - ${formatCurrency(spending)} (${percentage}% of total)
+                            <br><span style="color: #666; font-size: 14px;">Primary channels: ${channelList}</span>
+                        </li>
+                    `;
+                }).join('');
+
+                analysisHTML += `
+                    <div style="background: #fff9e6; padding: 20px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #f39c12;">
+                        <h3 style="color: #e67e22; margin-top: 0; margin-bottom: 15px; font-size: 18px;">Top Investing Brands</h3>
+                        <ul style="margin: 0; padding-left: 20px; line-height: 1.8; color: #333;">
+                            ${brandsList}
+                        </ul>
+                        <p style="margin-top: 15px; margin-bottom: 0; line-height: 1.6; color: #333; font-size: 14px;">
+                            These brands represent the majority of advertising investment, with each focusing on specific channel strategies that align with their target audiences and campaign objectives.
+                        </p>
+                    </div>
+                `;
+            }
+
+            analysisHTML += `
+                <div style="background: #fff5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #ff6b6b;">
+                    <h3 style="color: #d63031; margin-top: 0; margin-bottom: 10px; font-size: 18px;">Peak Investment Periods</h3>
+                    <p style="margin: 0; line-height: 1.6; color: #333;">
+                        The highest advertising investment occurred during: ${seasonalInsights}. 
+                        These peak months represent strategic alignment with key US market seasonal events and shopping periods.
+                    </p>
+                </div>
+            `;
+
+            // Specific month analysis: January, March, April
+            const monthsToAnalyze = [
+                { data: januaryAnalysis, month: 'January' },
+                { data: marchAnalysis, month: 'March' },
+                { data: aprilAnalysis, month: 'April' }
+            ].filter(item => item.data !== null);
+
+            if (monthsToAnalyze.length > 0) {
+                let monthAnalysisHTML = '';
+                monthsToAnalyze.forEach(({ data, month }) => {
+                    if (data && data.spending > 0) {
+                        const eventInfo = seasonalEvents[month] || { events: [], explanation: '' };
+                        const brandsList = data.topBrands.map(([brand, amount]) => 
+                            `${brand} (${formatCurrency(amount)})`
+                        ).join(', ');
+                        
+                        monthAnalysisHTML += `
+                            <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 4px;">
+                                <h4 style="color: #667eea; margin-top: 0; margin-bottom: 8px; font-size: 16px;">${month} - ${formatCurrency(data.spending)}</h4>
+                                <p style="margin: 5px 0; line-height: 1.5; color: #333; font-size: 14px;">
+                                    <strong>Key Events:</strong> ${eventInfo.events.join(', ')}
+                                </p>
+                                <p style="margin: 5px 0; line-height: 1.5; color: #333; font-size: 14px;">
+                                    <strong>Top Brands:</strong> ${brandsList}
+                                </p>
+                                ${data.topChannel ? `<p style="margin: 5px 0; line-height: 1.5; color: #333; font-size: 14px;"><strong>Primary Channel:</strong> ${data.topChannel[0]} (${formatCurrency(data.topChannel[1])})</p>` : ''}
+                                <p style="margin: 5px 0; line-height: 1.5; color: #666; font-size: 13px; font-style: italic;">
+                                    ${eventInfo.explanation}
+                                </p>
+                            </div>
+                        `;
+                    }
+                });
+
+                if (monthAnalysisHTML) {
+                    analysisHTML += `
+                        <div style="background: #e8f4f8; padding: 20px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #3498db;">
+                            <h3 style="color: #2980b9; margin-top: 0; margin-bottom: 15px; font-size: 18px;">Early Year Activity Analysis (January, March, April)</h3>
+                            <p style="margin: 0 0 15px 0; line-height: 1.6; color: #333;">
+                                These months show increased advertising activity driven by specific seasonal events and market opportunities:
+                            </p>
+                            ${monthAnalysisHTML}
+                        </div>
+                    `;
+                }
+            }
+
+            // Channel Investment Analysis - Enhanced
+            if (topSocialPlatforms.length > 0) {
+                const socialTotal = socialMedia.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+                const socialByBrand = socialMedia.reduce((acc, d) => {
+                    const brand = d.Brand_Main || 'Unknown';
+                    acc[brand] = (acc[brand] || 0) + (d.Dollars_Clean || 0);
+                    return acc;
+                }, {});
+                const topSocialBrands = Object.entries(socialByBrand)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3)
+                    .map(([brand, amount]) => `${brand} (${formatCurrency(amount)})`)
+                    .join(', ');
+
+                analysisHTML += `
+                    <div style="background: #f0fff4; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #00b894;">
+                        <h3 style="color: #00b894; margin-top: 0; margin-bottom: 10px; font-size: 18px;">Top Social Media Platforms</h3>
+                        <p style="margin: 0 0 10px 0; line-height: 1.6; color: #333;">
+                            Digital Social media investment totaled <strong>${formatCurrency(socialTotal)}</strong>, primarily concentrated on: <strong>${topSocialPlatforms.join(', ')}</strong>.
+                        </p>
+                        <p style="margin: 0; line-height: 1.6; color: #333; font-size: 14px;">
+                            <strong>Top brands using social media:</strong> ${topSocialBrands || 'Various brands'}
+                        </p>
+                    </div>
+                `;
+            }
+
+            if (topTVPrograms.length > 0) {
+                const tvTotal = tvData.reduce((sum, d) => sum + (d.Dollars_Clean || 0), 0);
+                const tvByBrand = tvData.reduce((acc, d) => {
+                    const brand = d.Brand_Main || 'Unknown';
+                    acc[brand] = (acc[brand] || 0) + (d.Dollars_Clean || 0);
+                    return acc;
+                }, {});
+                const topTVBrands = Object.entries(tvByBrand)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3)
+                    .map(([brand, amount]) => `${brand} (${formatCurrency(amount)})`)
+                    .join(', ');
+
+                analysisHTML += `
+                    <div style="background: #fffbf0; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #fdcb6e;">
+                        <h3 style="color: #e17055; margin-top: 0; margin-bottom: 10px; font-size: 18px;">Top Television Programs</h3>
+                        <p style="margin: 0 0 10px 0; line-height: 1.6; color: #333;">
+                            Television advertising totaled <strong>${formatCurrency(tvTotal)}</strong>, focused on programs such as: <strong>${topTVPrograms.join(', ')}</strong>.
+                        </p>
+                        <p style="margin: 0; line-height: 1.6; color: #333; font-size: 14px;">
+                            <strong>Top brands using TV:</strong> ${topTVBrands || 'Various brands'}
+                        </p>
+                    </div>
+                `;
+            }
+
+            if (topRadioPrograms.length > 0) {
+                analysisHTML += `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #6c757d;">
+                        <h3 style="color: #495057; margin-top: 0; margin-bottom: 10px; font-size: 18px;">Top Radio Programs</h3>
+                        <p style="margin: 0; line-height: 1.6; color: #333;">
+                            Radio advertising investment was concentrated on: <strong>${topRadioPrograms.join(', ')}</strong>. 
+                            These programs represent key audio media touchpoints for reaching target audiences.
+                        </p>
+                    </div>
+                `;
+            }
+
+            if (topDigitalDistributors.length > 0) {
+                analysisHTML += `
+                    <div style="background: #f0f4ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                        <h3 style="color: #667eea; margin-top: 0; margin-bottom: 10px; font-size: 18px;">Top Digital Display Channels</h3>
+                        <p style="margin: 0; line-height: 1.6; color: #333;">
+                            Digital Display advertising was distributed across platforms including: <strong>${topDigitalDistributors.join(', ')}</strong>. 
+                            These channels represent the digital ecosystem for programmatic and display advertising.
+                        </p>
+                    </div>
+                `;
+            }
+
+            analysisHTML += `
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                    <h3 style="color: #667eea; margin-top: 0; margin-bottom: 10px; font-size: 18px;">Media Strategy Overview</h3>
+                    <p style="margin: 0; line-height: 1.6; color: #333;">
+                        The advertising strategy during ${selectedYear === 'all' ? '2024-2025' : selectedYear} was primarily focused on <strong>${topMediaType}</strong> media, 
+                        with strategic investments aligned to seasonal shopping patterns and key US market events. The temporal distribution shows a clear pattern of 
+                        increased investment during traditional high-consumption periods, particularly around holidays and seasonal transitions.
+                    </p>
+                </div>
+            `;
+
+            insightsDiv.innerHTML = analysisHTML;
+        }
+
+        function setupTableSorting(tableId, tableData) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const headers = table.querySelectorAll('.sortable-header');
+            let currentSort = { column: 'spending', direction: 'desc' };
+
+            headers.forEach(header => {
+                header.addEventListener('click', function() {
+                    const column = this.getAttribute('data-column');
+                    
+                    // Determine sort direction
+                    let direction = 'desc'; // Always descending (high to low)
+                    
+                    // Update active state
+                    headers.forEach(h => {
+                        h.classList.remove('active-sort');
+                        h.setAttribute('data-sort', 'none');
+                        h.querySelector('.sort-indicator').textContent = '';
+                    });
+                    
+                    this.classList.add('active-sort');
+                    this.setAttribute('data-sort', direction);
+                    this.querySelector('.sort-indicator').textContent = '▼';
+                    
+                    currentSort = { column, direction };
+                    
+                    // Sort the data
+                    const sortedData = [...tableData].sort((a, b) => {
+                        let aVal, bVal;
+                        
+                        if (column === 'spending') {
+                            aVal = a.spending;
+                            bVal = b.spending;
+                        } else if (column === 'program') {
+                            aVal = a.program.toLowerCase();
+                            bVal = b.program.toLowerCase();
+                        } else if (column === 'mediaType') {
+                            aVal = a.mediaType.toLowerCase();
+                            bVal = b.mediaType.toLowerCase();
+                        }
+                        
+                        if (direction === 'desc') {
+                            if (typeof aVal === 'number') {
+                                return bVal - aVal;
+                            } else {
+                                return bVal.localeCompare(aVal);
+                            }
+                        } else {
+                            if (typeof aVal === 'number') {
+                                return aVal - bVal;
+                            } else {
+                                return aVal.localeCompare(bVal);
+                            }
+                        }
+                    });
+                    
+                    // Rebuild table with sorted data
+                    rebuildTable(table, sortedData);
+                });
+            });
+        }
+
+        function rebuildTable(table, sortedData) {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            // Group by media type for rowspan
+            const groupedData = {};
+            sortedData.forEach(item => {
+                if (!groupedData[item.mediaType]) {
+                    groupedData[item.mediaType] = [];
+                }
+                groupedData[item.mediaType].push(item);
+            });
+            
+            // Clear and rebuild tbody
+            tbody.innerHTML = '';
+            
+            Object.entries(groupedData).forEach(([type, items]) => {
+                let firstRow = null;
+                items.forEach((item, idx) => {
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-media-type', type);
+                    row.setAttribute('data-program', item.program);
+                    row.setAttribute('data-spending', item.spending);
+                    row.setAttribute('data-group', type);
+                    
+                    if (idx === 0) {
+                        row.classList.add('media-type-group-header');
+                        const typeCell = document.createElement('td');
+                        typeCell.setAttribute('rowspan', '1'); // Start collapsed
+                        typeCell.classList.add('media-type-cell');
+                        typeCell.setAttribute('data-group', type);
+                        
+                        const expandIcon = document.createElement('span');
+                        expandIcon.classList.add('expand-icon');
+                        expandIcon.setAttribute('data-group', type);
+                        expandIcon.textContent = '+'; // Start collapsed
+                        
+                        typeCell.appendChild(expandIcon);
+                        typeCell.appendChild(document.createTextNode(' ' + type));
+                        row.appendChild(typeCell);
+                        
+                        // Calculate total spending for this media type
+                        const totalSpending = items.reduce((sum, i) => sum + i.spending, 0);
+                        row.setAttribute('data-total', totalSpending.toString());
+                        
+                        // Program cell (collapsed initially)
+                        const programCell = document.createElement('td');
+                        programCell.classList.add('program-cell', 'collapsed');
+                        programCell.textContent = item.program;
+                        row.appendChild(programCell);
+                        
+                        // Spending cell (shows total when collapsed, individual when expanded)
+                        const spendingCell = document.createElement('td');
+                        spendingCell.classList.add('spending-cell');
+                        spendingCell.setAttribute('data-group', type);
+                        spendingCell.setAttribute('data-is-total', 'true');
+                        spendingCell.textContent = formatCurrency(totalSpending);
+                        spendingCell.style.fontWeight = '600';
+                        spendingCell.style.color = '#667eea';
+                        row.appendChild(spendingCell);
+                    } else {
+                        row.classList.add('media-type-group-row', 'collapsed');
+                        
+                        const programCell = document.createElement('td');
+                        programCell.classList.add('program-cell');
+                        programCell.textContent = item.program;
+                        row.appendChild(programCell);
+                        
+                        const spendingCell = document.createElement('td');
+                        spendingCell.classList.add('spending-cell');
+                        spendingCell.textContent = formatCurrency(item.spending);
+                        row.appendChild(spendingCell);
+                    }
+                    
+                    tbody.appendChild(row);
+                });
+            });
+            
+            // Re-setup expand/collapse after rebuild
+            setupTableExpandCollapse(table.id);
+        }
+
+        // Initialize on load
+        loadData();
+    </script>
+</body>
+</html>
+
