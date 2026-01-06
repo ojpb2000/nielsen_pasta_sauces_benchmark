@@ -1,15 +1,15 @@
-# Nielsen Ad Intel Dashboard
+# Nielsen Ad Intel Dashboard - Pasta & Sauces Benchmark
 
-Interactive dashboard for analyzing Nielsen Ad Intel data for RAOS and CAMPBELLS brands (January 2024 - December 2025).
+Interactive dashboard for analyzing Nielsen Ad Intel data for pasta sauce brands (January 2024 - December 2025).
 
 ## Features
 
-- **Brand Analysis**: Deep dive into CAMPBELLS and RAOS advertising strategies
-- **Media Category Analysis**: Breakdown by media categories (Television, Digital, etc.)
-- **Media Type Analysis**: Detailed analysis by media types (Cable TV, Network TV, etc.)
-- **Temporal Analysis**: Year-over-year comparisons and monthly trends
-- **Interactive Filtering**: Filter by Brand and Subsidiary
-- **YouTube Channel Analysis**: Detailed breakdown of YouTube channel usage
+- **Brand Analysis**: Deep dive into all major pasta sauce brands including Rao's, Campbells, Prego, Ragu, Bertolli, Classico, Mezzetta, Botticelli, and Carbone Fine Food
+- **Media Category Analysis**: Breakdown by media categories (Television, Digital, etc.) with year filtering
+- **Media Type Analysis**: Detailed analysis by media types with sortable, expandable/collapsible tables
+- **Temporal Analysis**: Year-over-year comparisons, monthly trends, and comprehensive insights with seasonal event analysis
+- **Interactive Filtering**: Filter by Brand, Year, and explore detailed program/distributor data
+- **Advanced Table Features**: Sortable columns and expand/collapse functionality for easy navigation
 
 ## Setup
 
@@ -45,14 +45,17 @@ Upload the files to GitHub and enable GitHub Pages - this works without a local 
 
 ## GitHub Pages Deployment
 
-1. Create a new repository on GitHub
-2. Upload the following files:
-   - `index.html`
-   - `dashboard_data.json`
-   - `README.md` (optional)
-3. Go to repository Settings > Pages
-4. Select the branch containing your files
-5. The dashboard will be available at `https://[username].github.io/[repository-name]`
+This dashboard is configured for GitHub Pages deployment. To enable:
+
+1. Go to your repository: https://github.com/ojpb2000/nielsen_pasta_sauces_benchmark
+2. Navigate to **Settings** > **Pages**
+3. Under **Source**, select:
+   - Branch: `main`
+   - Folder: `/ (root)`
+4. Click **Save**
+5. Your dashboard will be available at: `https://ojpb2000.github.io/nielsen_pasta_sauces_benchmark/`
+
+**Note**: It may take a few minutes for GitHub Pages to build and deploy your site.
 
 ## Files
 
