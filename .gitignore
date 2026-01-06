@@ -15,11 +15,11 @@ ENV/
 *.swp
 *.swo
 *~
+.cursor/
 
 # OS
 .DS_Store
 Thumbs.db
-desktop.ini
 
 # Logs
 *.log
@@ -28,3 +28,19 @@ desktop.ini
 *.tmp
 *.temp
 
+# System files (Windows)
+AppData/
+Contacts/
+Documents/
+Downloads/
+Favorites/
+Links/
+Microsoft/
+Music/
+NTUSER.DAT*
+ntuser.dat.*
+ntuser.ini
+Saved Games/
+Searches/
+Videos/
+.streamlit/
